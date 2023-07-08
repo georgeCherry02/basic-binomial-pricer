@@ -1,8 +1,8 @@
 use chrono::prelude::Utc;
-use chrono::Date;
+use chrono::DateTime;
 
 pub struct Option {
     strike: f64,
     volatility: f64,
-    expiry: Date<Utc>,
+    expiry: DateTime<Utc>,
 }

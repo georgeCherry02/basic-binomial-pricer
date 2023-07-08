@@ -2,8 +2,8 @@ use std::{error, fmt};
 
 #[derive(Debug)]
 pub struct PricerError {
-    message: String,
-    code: u64,
+    pub message: String,
+    pub code: u64,
 }
 
 impl fmt::Display for PricerError {
