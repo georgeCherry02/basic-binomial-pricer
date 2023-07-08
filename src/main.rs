@@ -1,8 +1,10 @@
 mod result;
 
+use log::info;
 use result::PricerResult;
 
 fn main() -> PricerResult<()> {
-    println!("Hello, world!");
+    env_logger::init();
+    info!("Hello, world!");
     Ok(())
 }
