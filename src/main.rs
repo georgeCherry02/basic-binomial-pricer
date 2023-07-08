@@ -1,3 +1,4 @@
+mod option;
 mod result;
 
 use chrono::prelude::Utc;
@@ -31,6 +32,7 @@ fn main() -> PricerResult<()> {
             code: 1,
         });
     }
-    info!("Received a pricing call with:\nUnderlying Price = {}\nStrike Price = {}\nVolatility = {}\nExpiry = {}\nRisk-free Rate = {}\nAnd pricing with {} steps", args.underlying_price, args.strike_price, args.volatility, args.expiry, args.apr, args.num_steps);
+    let call = option::get_call(args.strike_price, args.volatility, expiry_dt);
+    info!("Received a pricing call with:\nUnderlying Price = {}\nCall = {}\nRisk-free Rate = {}\nAnd pricing with {} steps", args.underlying_price, call, args.apr, args.num_steps);
     Ok(())
 }
