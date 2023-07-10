@@ -8,13 +8,14 @@ pub trait RiskFreeModel {
 }
 
 pub struct AnnualisedRiskFreeRate {
-    interest_rate: f64,
+    ir_exponent: f64,
 }
 
 pub fn get_annualised_risk_free_rate(apr: f64) -> Box<dyn RiskFreeModel> {
     let interest_rate = 1.0 + (apr / 100.0);
     info!("Constructed model with interest_rate={}", interest_rate);
-    Box::new(AnnualisedRiskFreeRate { interest_rate })
+    let ir_exponent = interest_rate.ln();
+    Box::new(AnnualisedRiskFreeRate { ir_exponent })
 }
 
 const NUMBER_OF_SECONDS_IN_A_YEAR: f64 = 31536000.0;
@@ -26,6 +27,6 @@ impl RiskFreeModel for AnnualisedRiskFreeRate {
         let diff_secs = end_date.signed_duration_since(start_date).num_seconds();
         let diff_years: f64 = (diff_secs as f64) / NUMBER_OF_SECONDS_IN_A_YEAR;
         info!("Diff years={}", diff_years);
-        start_value * EULERS_NUMBER.powf(self.interest_rate * diff_years)
+        start_value * EULERS_NUMBER.powf(self.ir_exponent * diff_years)
     }
 }

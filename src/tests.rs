@@ -15,5 +15,8 @@ fn one_year_test() {
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let end_date = Utc.timestamp_millis_opt(1720539543000).unwrap();
     let ret = rfm.apply(start, begin_date, end_date);
-    assert_eq!(ret, 105.0);
+    let upper_bound: f64 = 105.02;
+    let lower_bound: f64 = 105.01;
+    assert!(ret < upper_bound);
+    assert!(ret > lower_bound);
 }
