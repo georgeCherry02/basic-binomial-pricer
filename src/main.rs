@@ -1,6 +1,7 @@
 mod option;
 mod result;
 mod risk_free_model;
+mod tests;
 
 use chrono::prelude::Utc;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};
