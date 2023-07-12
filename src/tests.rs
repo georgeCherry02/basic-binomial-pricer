@@ -4,7 +4,7 @@ use chrono::prelude::Utc;
 use chrono::TimeZone;
 
 #[cfg(test)]
-use crate::build_tree::{construct_tree, Node};
+use crate::build_tree::{get_next_layer, TreePosition};
 #[cfg(test)]
 use crate::result::PricerError;
 #[cfg(test)]
@@ -40,6 +40,7 @@ fn one_year_backward_test() {
     assert!(ret > lower_bound);
 }
 
+/*
 #[test_log::test]
 fn one_year_tree_one_step() {
     let underlying_price: f64 = 100.0;
@@ -78,4 +79,35 @@ fn one_year_tree_one_step() {
             });
         });
     }
+}
+*/
+
+#[test_log::test]
+fn get_next_layer_basic() {
+    let start_tree_positions = vec![
+        TreePosition {
+            num_ups: 1,
+            num_downs: 0,
+        },
+        TreePosition {
+            num_ups: 0,
+            num_downs: 1,
+        },
+    ];
+    let expected_end_positions = vec![
+        TreePosition {
+            num_ups: 2,
+            num_downs: 0,
+        },
+        TreePosition {
+            num_ups: 1,
+            num_downs: 1,
+        },
+        TreePosition {
+            num_ups: 0,
+            num_downs: 2,
+        },
+    ];
+    let processed_end_positions = get_next_layer(start_tree_positions);
+    assert!(processed_end_positions == expected_end_positions);
 }
