@@ -1,6 +1,7 @@
 mod option;
 mod result;
 mod risk_free_model;
+mod build_tree;
 mod tests;
 
 use chrono::prelude::Utc;
@@ -17,7 +18,7 @@ pub struct Cli {
     pub volatility: f64,
     pub expiry: NaiveDate,
     #[arg(default_value_t = 1000)]
-    pub num_steps: u64,
+    pub num_steps: i32,
     #[arg(default_value_t = 0.05)]
     pub apr: f64,
 }
@@ -25,7 +26,7 @@ pub struct Cli {
 struct ValidatedInterface {
     underlying_price: f64,
     call: Call,
-    num_steps: u64,
+    num_steps: i32,
     annualised_rate: f64,
 }
 
