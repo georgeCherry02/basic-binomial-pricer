@@ -15,3 +15,10 @@ impl fmt::Display for PricerError {
 impl error::Error for PricerError {}
 
 pub type PricerResult<T> = Result<T, PricerError>;
+
+pub fn make_not_implemented_error() -> PricerError {
+    PricerError {
+        message: String::from("Behaviour not implemented yet"),
+        code: 999,
+    }
+}
