@@ -4,9 +4,15 @@ use chrono::prelude::Utc;
 use chrono::TimeZone;
 
 #[cfg(test)]
+use crate::build_tree::{construct_tree, Node};
+#[cfg(test)]
+use crate::result::PricerError;
+#[cfg(test)]
 use crate::risk_free_model;
 
 use test_log;
+
+use log::error;
 
 #[test_log::test]
 fn one_year_forward_test() {
@@ -32,4 +38,44 @@ fn one_year_backward_test() {
     let lower_bound: f64 = 99.98;
     assert!(ret < upper_bound);
     assert!(ret > lower_bound);
+}
+
+#[test_log::test]
+fn one_year_tree_one_step() {
+    let underlying_price: f64 = 100.0;
+    let volatility: f64 = 5.0;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1720539543000).unwrap();
+    let num_steps = 1;
+
+    let tree = construct_tree(
+        underlying_price,
+        volatility,
+        begin_date,
+        end_date,
+        num_steps,
+    );
+
+    #[allow(unused_must_use)]
+    {
+        assert!(tree.is_ok());
+        tree.map(|node: Node| {
+            assert!(node.price == 100.0);
+            assert!(node.datetime == begin_date);
+            assert!(node.up.is_some());
+            node.up.map(|node_up: Box<Node>| {
+                assert!(node_up.price == 105.0);
+                assert!(node_up.datetime == end_date);
+                assert!(node_up.up.is_none());
+                assert!(node_up.down.is_none());
+            });
+            assert!(node.down.is_some());
+            node.down.map(|node_down: Box<Node>| {
+                assert!(node_down.price == 95.0);
+                assert!(node_down.datetime == end_date);
+                assert!(node_down.up.is_none());
+                assert!(node_down.down.is_none());
+            });
+        });
+    }
 }

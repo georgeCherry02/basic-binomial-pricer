@@ -3,11 +3,13 @@ use chrono::DateTime;
 
 use crate::result::PricerResult;
 
+use log::info;
+
 pub struct Node {
-    price: f64,
-    datetime: DateTime<Utc>,
-    up: Option<Box<Node>>,
-    down: Option<Box<Node>>,
+    pub price: f64,
+    pub datetime: DateTime<Utc>,
+    pub up: Option<Box<Node>>,
+    pub down: Option<Box<Node>>,
 }
 
 fn get_datetime_range(
@@ -18,7 +20,7 @@ fn get_datetime_range(
     let dur = end - start;
     let diff = dur / num_steps;
     let mut date_range = Vec::new();
-    for i in 1..num_steps {
+    for i in 0..num_steps + 1 {
         date_range.push(start + (diff * i));
     }
     date_range
