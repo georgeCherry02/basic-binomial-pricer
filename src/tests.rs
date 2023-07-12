@@ -4,7 +4,7 @@ use chrono::prelude::Utc;
 use chrono::TimeZone;
 
 #[cfg(test)]
-use crate::build_tree::{get_next_layer, TreePosition};
+use crate::build_tree::{construct_tree, get_next_layer, Tree, TreePosition};
 #[cfg(test)]
 use crate::result::PricerError;
 #[cfg(test)]
@@ -40,7 +40,6 @@ fn one_year_backward_test() {
     assert!(ret > lower_bound);
 }
 
-/*
 #[test_log::test]
 fn one_year_tree_one_step() {
     let underlying_price: f64 = 100.0;
@@ -60,27 +59,27 @@ fn one_year_tree_one_step() {
     #[allow(unused_must_use)]
     {
         assert!(tree.is_ok());
-        tree.map(|node: Node| {
+        tree.map(|tree: Tree| {
+            let node = tree.head;
             assert!(node.price == 100.0);
             assert!(node.datetime == begin_date);
-            assert!(node.up.is_some());
-            node.up.map(|node_up: Box<Node>| {
-                assert!(node_up.price == 105.0);
-                assert!(node_up.datetime == end_date);
-                assert!(node_up.up.is_none());
-                assert!(node_up.down.is_none());
-            });
-            assert!(node.down.is_some());
-            node.down.map(|node_down: Box<Node>| {
-                assert!(node_down.price == 95.0);
-                assert!(node_down.datetime == end_date);
-                assert!(node_down.up.is_none());
-                assert!(node_down.down.is_none());
-            });
+            assert!(
+                node.up
+                    == TreePosition {
+                        num_ups: 1,
+                        num_downs: 0
+                    }
+            );
+            assert!(
+                node.down
+                    == TreePosition {
+                        num_ups: 0,
+                        num_downs: 1
+                    }
+            );
         });
     }
 }
-*/
 
 #[test_log::test]
 fn get_next_layer_basic() {

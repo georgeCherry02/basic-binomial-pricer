@@ -4,6 +4,7 @@ use chrono::DateTime;
 use crate::result::PricerResult;
 use std::collections::HashMap;
 
+#[derive(Clone, Eq, Hash)]
 pub struct TreePosition {
     pub num_ups: usize,
     pub num_downs: usize,
@@ -16,14 +17,14 @@ impl PartialEq for TreePosition {
 }
 
 pub struct Node {
-    price: f64,
-    datetime: DateTime<Utc>,
-    up: TreePosition,
-    down: TreePosition,
+    pub price: f64,
+    pub datetime: DateTime<Utc>,
+    pub up: TreePosition,
+    pub down: TreePosition,
 }
 
 pub struct Tree {
-    head: Node,
+    pub head: Node,
     nodes: HashMap<TreePosition, Node>,
 }
 
@@ -144,6 +145,31 @@ pub fn get_next_layer(tree_positions: Vec<TreePosition>) -> Vec<TreePosition> {
     next_layer
 }
 
+fn get_node_value(underlying_price: f64, volatility: f64, position: &TreePosition) -> f64 {
+    let multiplier = 1.0 + volatility;
+    let up_multi = position.num_ups as f64 * multiplier;
+    let down_multi = position.num_downs as f64 * multiplier;
+    underlying_price * up_multi / down_multi
+}
+
+fn get_node(price: f64, datetime: DateTime<Utc>, volatility: f64, position: &TreePosition) -> Node {
+    let price = get_node_value(price, volatility, position);
+    let up = TreePosition {
+        num_ups: position.num_ups + 1,
+        num_downs: position.num_downs,
+    };
+    let down = TreePosition {
+        num_ups: position.num_ups,
+        num_downs: position.num_downs + 1,
+    };
+    Node {
+        price,
+        datetime,
+        up,
+        down,
+    }
+}
+
 pub fn construct_tree(
     underlying_price: f64,
     volatility: f64,
@@ -152,7 +178,8 @@ pub fn construct_tree(
     num_steps: i32,
 ) -> PricerResult<Tree> {
     let date_range = get_datetime_range(start, end, num_steps);
-    let mut next_tree_positions = [
+    let mut tree = new_tree(underlying_price, start);
+    let mut current_layer = vec![
         TreePosition {
             num_ups: 1,
             num_downs: 0,
@@ -162,7 +189,17 @@ pub fn construct_tree(
             num_downs: 1,
         },
     ];
-    for date in date_range {}
+    for datetime in date_range {
+        let nodes: Vec<Node> = current_layer
+            .iter()
+            .map(|position: &TreePosition| {
+                get_node(underlying_price, datetime, volatility, position)
+            })
+            .collect();
+        tree.nodes
+            .extend(current_layer.clone().into_iter().zip(nodes.into_iter()));
+        current_layer = get_next_layer(current_layer);
+    }
     let mut tree = new_tree(underlying_price, start);
     Ok(tree)
 }
