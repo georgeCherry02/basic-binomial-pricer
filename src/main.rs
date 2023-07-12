@@ -1,7 +1,7 @@
+mod build_tree;
 mod option;
 mod result;
 mod risk_free_model;
-mod build_tree;
 mod tests;
 
 use chrono::prelude::Utc;
