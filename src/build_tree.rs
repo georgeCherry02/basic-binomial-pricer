@@ -67,6 +67,10 @@ fn make_node(
         })
 }
 
+"""
+Currently this is a very rudimentary tree and doesn't have any knowledge of when nodes overlap... which is very inefficient - this needs to be fixed
+Additionally this just adds? Clearly wasn't concentrating - this should be a multiplier...
+"""
 pub fn construct_tree(
     underlying_price: f64,
     vol: f64,
