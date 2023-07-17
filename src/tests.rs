@@ -4,11 +4,13 @@ use chrono::prelude::Utc;
 use chrono::TimeZone;
 
 #[cfg(test)]
-use crate::build_tree::{construct_tree, get_next_layer, Tree, TreePosition};
+use crate::build_tree::{construct_tree, get_next_layer, Node, Tree, TreePosition};
 #[cfg(test)]
 use crate::risk_free_model;
 
 use test_log;
+
+use log::error;
 
 #[test_log::test]
 fn one_year_forward_test() {
@@ -39,7 +41,7 @@ fn one_year_backward_test() {
 #[test_log::test]
 fn one_year_tree_one_step() {
     let underlying_price: f64 = 100.0;
-    let volatility: f64 = 5.0;
+    let volatility: f64 = 0.05;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let end_date = Utc.timestamp_millis_opt(1720539543000).unwrap();
     let num_steps = 1;
@@ -75,6 +77,45 @@ fn one_year_tree_one_step() {
             );
             assert!(tree.nodes.len() == 3);
             assert!(tree.nodes.get(&node.up).is_some());
+            tree.nodes.get(&node.up).map(|node: &Node| {
+                error!("Node price up={}", node.price);
+                assert!(node.price == 105.00);
+                assert!(node.datetime == end_date);
+                assert!(
+                    node.up
+                        == TreePosition {
+                            num_ups: 2,
+                            num_downs: 0
+                        }
+                );
+                assert!(
+                    node.down
+                        == TreePosition {
+                            num_ups: 1,
+                            num_downs: 1
+                        }
+                );
+            });
+            tree.nodes.get(&node.down).map(|node: &Node| {
+                error!("Node price down={}", node.price);
+                assert!(node.price > 95.23);
+                assert!(node.price < 95.24);
+                assert!(node.datetime == end_date);
+                assert!(
+                    node.up
+                        == TreePosition {
+                            num_ups: 1,
+                            num_downs: 1
+                        }
+                );
+                assert!(
+                    node.down
+                        == TreePosition {
+                            num_ups: 0,
+                            num_downs: 2
+                        }
+                );
+            });
             assert!(tree.nodes.get(&node.down).is_some());
         });
     }
