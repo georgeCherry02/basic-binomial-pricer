@@ -118,16 +118,10 @@ pub fn construct_tree(
 ) -> PricerResult<Tree> {
     let date_range = get_datetime_range(start, end, num_steps);
     let mut tree = new_tree(underlying_price, start);
-    let mut current_layer = vec![
-        TreePosition {
-            num_ups: 1,
-            num_downs: 0,
-        },
-        TreePosition {
-            num_ups: 0,
-            num_downs: 1,
-        },
-    ];
+    let mut current_layer = vec![TreePosition {
+        num_ups: 0,
+        num_downs: 0,
+    }];
     for datetime in date_range {
         let nodes: Vec<Node> = current_layer
             .iter()
