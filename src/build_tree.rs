@@ -25,7 +25,7 @@ pub struct Node {
 
 pub struct Tree {
     pub head: Node,
-    nodes: HashMap<TreePosition, Node>,
+    pub nodes: HashMap<TreePosition, Node>,
 }
 
 fn new_tree(price: f64, datetime: DateTime<Utc>) -> Tree {
@@ -139,6 +139,5 @@ pub fn construct_tree(
             .extend(current_layer.clone().into_iter().zip(nodes.into_iter()));
         current_layer = get_next_layer(current_layer);
     }
-    let mut tree = new_tree(underlying_price, start);
     Ok(tree)
 }

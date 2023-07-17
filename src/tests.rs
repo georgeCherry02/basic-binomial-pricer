@@ -6,13 +6,9 @@ use chrono::TimeZone;
 #[cfg(test)]
 use crate::build_tree::{construct_tree, get_next_layer, Tree, TreePosition};
 #[cfg(test)]
-use crate::result::PricerError;
-#[cfg(test)]
 use crate::risk_free_model;
 
 use test_log;
-
-use log::error;
 
 #[test_log::test]
 fn one_year_forward_test() {
@@ -77,6 +73,9 @@ fn one_year_tree_one_step() {
                         num_downs: 1
                     }
             );
+            assert!(tree.nodes.len() == 3);
+            assert!(tree.nodes.get(&node.up).is_some());
+            assert!(tree.nodes.get(&node.down).is_some());
         });
     }
 }
