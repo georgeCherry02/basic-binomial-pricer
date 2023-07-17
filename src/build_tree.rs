@@ -86,8 +86,16 @@ pub fn get_next_layer(tree_positions: Vec<TreePosition>) -> Vec<TreePosition> {
 
 fn get_node_value(underlying_price: f64, volatility: f64, position: &TreePosition) -> f64 {
     let multiplier = 1.0 + volatility;
-    let up_multi = position.num_ups as f64 * multiplier;
-    let down_multi = position.num_downs as f64 * multiplier;
+    let up_multi = if position.num_ups > 0 {
+        position.num_ups as f64 * multiplier
+    } else {
+        1.0
+    };
+    let down_multi = if position.num_downs > 0 {
+        position.num_downs as f64 * multiplier
+    } else {
+        1.0
+    };
     underlying_price * up_multi / down_multi
 }
 
