@@ -1,8 +1,12 @@
 use chrono::prelude::Utc;
 use chrono::DateTime;
 
+use crate::option::Call;
 use crate::result::PricerResult;
+
 use std::collections::HashMap;
+
+use log::info;
 
 #[derive(Clone, Eq, Hash)]
 pub struct TreePosition {
@@ -26,6 +30,36 @@ pub struct Node {
 pub struct Tree {
     pub head: Node,
     pub nodes: HashMap<TreePosition, Node>,
+}
+
+fn get_child_nodes<'tree>(tree: &'tree Tree, node: &Node) -> Option<(&'tree Node, &'tree Node)> {
+    let up_node = tree.nodes.get(&node.up);
+    if up_node.is_none() {
+        return None;
+    }
+    tree.nodes
+        .get(&node.down)
+        .map(|down_node: &Node| (up_node.unwrap(), down_node))
+}
+
+const EULERS_NUMBER: f64 = std::f64::consts::E;
+
+fn value_node(tree: &Tree, node: &Node, call: &Call, rfr: f64) -> f64 {
+    get_child_nodes(tree, node)
+        .map(|(up_node, down_node)| {
+            let u = up_node.price / node.price;
+            let d = down_node.price / node.price;
+            let p = (EULERS_NUMBER.powf(rfr) - d) / (u - d);
+            info!("Found u={}, d={}, p={}", u, d, p);
+            let up_value = value_node(tree, up_node, call, rfr);
+            let down_value = value_node(tree, down_node, call, rfr);
+            EULERS_NUMBER.powf(-rfr) * ((p * up_value) + ((1.0f64 - p) * down_value))
+        })
+        .unwrap_or(0.0f64.max(call.strike - node.price))
+}
+
+pub fn value_tree(tree: &Tree, call: &Call, rfr: f64) -> f64 {
+    return value_node(tree, &tree.head, call, rfr);
 }
 
 fn new_tree(price: f64, datetime: DateTime<Utc>) -> Tree {

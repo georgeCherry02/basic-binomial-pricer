@@ -4,9 +4,9 @@ use chrono::DateTime;
 use std::fmt;
 
 pub struct Call {
-    strike: f64,
-    volatility: f64,
-    expiry: DateTime<Utc>,
+    pub strike: f64,
+    pub volatility: f64,
+    pub expiry: DateTime<Utc>,
 }
 
 impl fmt::Display for Call {

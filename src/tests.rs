@@ -4,12 +4,15 @@ use chrono::prelude::Utc;
 use chrono::TimeZone;
 
 #[cfg(test)]
-use crate::build_tree::{construct_tree, get_next_layer, Node, Tree, TreePosition};
+use crate::build_tree::{construct_tree, get_next_layer, value_tree, Node, Tree, TreePosition};
+#[cfg(test)]
+use crate::option::Call;
 #[cfg(test)]
 use crate::risk_free_model;
 
 use test_log;
 
+#[cfg(test)]
 use log::error;
 
 #[test_log::test]
@@ -149,4 +152,41 @@ fn get_next_layer_basic() {
     ];
     let processed_end_positions = get_next_layer(start_tree_positions);
     assert!(processed_end_positions == expected_end_positions);
+}
+
+#[test_log::test]
+fn one_year_basic_call() {
+    let underlying_price: f64 = 50.0;
+    let strike = underlying_price;
+    let volatility = 0.4;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1720539543000).unwrap();
+    let call = Call {
+        strike,
+        volatility,
+        expiry: end_date,
+    };
+    let num_steps = 1;
+    let risk_free_rate = 0.05 * (1.0 / 12.0);
+    error!("About to enter lower scope");
+
+    #[allow(unused_must_use)]
+    {
+        error!("About to run");
+        construct_tree(
+            underlying_price,
+            volatility,
+            begin_date,
+            end_date,
+            num_steps,
+        )
+        .map(|tree: Tree| {
+            let option_value = value_tree(&tree, &call, risk_free_rate);
+            error!("Option value={}", option_value);
+        })
+        .map_err(|err| {
+            error!("{}", err.message);
+        });
+    }
+    assert!(false);
 }
