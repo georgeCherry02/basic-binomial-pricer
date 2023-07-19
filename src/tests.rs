@@ -1,6 +1,8 @@
 #[cfg(test)]
 use chrono::prelude::Utc;
 #[cfg(test)]
+use chrono::Datelike;
+#[cfg(test)]
 use chrono::TimeZone;
 
 #[cfg(test)]
@@ -11,9 +13,6 @@ use crate::option::Call;
 use crate::risk_free_model;
 
 use test_log;
-
-#[cfg(test)]
-use log::error;
 
 #[test_log::test]
 fn one_year_forward_test() {
@@ -81,7 +80,6 @@ fn one_year_tree_one_step() {
             assert!(tree.nodes.len() == 3);
             assert!(tree.nodes.get(&node.up).is_some());
             tree.nodes.get(&node.up).map(|node: &Node| {
-                error!("Node price up={}", node.price);
                 assert!(node.price == 105.00);
                 assert!(node.datetime == end_date);
                 assert!(
@@ -100,9 +98,8 @@ fn one_year_tree_one_step() {
                 );
             });
             tree.nodes.get(&node.down).map(|node: &Node| {
-                error!("Node price down={}", node.price);
-                assert!(node.price > 95.23);
-                assert!(node.price < 95.24);
+                assert!(node.price > 94.999);
+                assert!(node.price < 95.001);
                 assert!(node.datetime == end_date);
                 assert!(
                     node.up
@@ -155,24 +152,22 @@ fn get_next_layer_basic() {
 }
 
 #[test_log::test]
-fn one_year_basic_call() {
-    let underlying_price: f64 = 50.0;
-    let strike = underlying_price;
-    let volatility = 0.4;
+fn one_year_basic_put() {
+    let underlying_price: f64 = 20.0;
+    let strike = 20.0;
+    let volatility = 0.2;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
-    let end_date = Utc.timestamp_millis_opt(1720539543000).unwrap();
+    let number_of_years = 2;
+    let end_date = begin_date.with_year(begin_date.year() + 2).unwrap();
     let call = Call {
         strike,
         volatility,
         expiry: end_date,
     };
-    let num_steps = 1;
-    let risk_free_rate = 0.05 * (1.0 / 12.0);
-    error!("About to enter lower scope");
-
+    let num_steps = number_of_years;
+    let risk_free_rate = 0.05;
     #[allow(unused_must_use)]
     {
-        error!("About to run");
         construct_tree(
             underlying_price,
             volatility,
@@ -182,11 +177,8 @@ fn one_year_basic_call() {
         )
         .map(|tree: Tree| {
             let option_value = value_tree(&tree, &call, risk_free_rate);
-            error!("Option value={}", option_value);
-        })
-        .map_err(|err| {
-            error!("{}", err.message);
+            assert!(option_value > 1.238);
+            assert!(option_value < 1.239);
         });
     }
-    assert!(false);
 }

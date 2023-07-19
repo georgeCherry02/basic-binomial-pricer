@@ -6,9 +6,7 @@ use crate::result::PricerResult;
 
 use std::collections::HashMap;
 
-use log::info;
-
-#[derive(Clone, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash)]
 pub struct TreePosition {
     pub num_ups: usize,
     pub num_downs: usize,
@@ -20,6 +18,7 @@ impl PartialEq for TreePosition {
     }
 }
 
+#[derive(Debug)]
 pub struct Node {
     pub price: f64,
     pub datetime: DateTime<Utc>,
@@ -27,6 +26,7 @@ pub struct Node {
     pub down: TreePosition,
 }
 
+#[derive(Debug)]
 pub struct Tree {
     pub head: Node,
     pub nodes: HashMap<TreePosition, Node>,
@@ -50,7 +50,6 @@ fn value_node(tree: &Tree, node: &Node, call: &Call, rfr: f64) -> f64 {
             let u = up_node.price / node.price;
             let d = down_node.price / node.price;
             let p = (EULERS_NUMBER.powf(rfr) - d) / (u - d);
-            info!("Found u={}, d={}, p={}", u, d, p);
             let up_value = value_node(tree, up_node, call, rfr);
             let down_value = value_node(tree, down_node, call, rfr);
             EULERS_NUMBER.powf(-rfr) * ((p * up_value) + ((1.0f64 - p) * down_value))
@@ -119,18 +118,9 @@ pub fn get_next_layer(tree_positions: Vec<TreePosition>) -> Vec<TreePosition> {
 }
 
 fn get_node_value(underlying_price: f64, volatility: f64, position: &TreePosition) -> f64 {
-    let multiplier = 1.0 + volatility;
-    let up_multi = if position.num_ups > 0 {
-        position.num_ups as f64 * multiplier
-    } else {
-        1.0
-    };
-    let down_multi = if position.num_downs > 0 {
-        position.num_downs as f64 * multiplier
-    } else {
-        1.0
-    };
-    underlying_price * up_multi / down_multi
+    let up_multi = f64::powf(1.0 + volatility, position.num_ups as f64);
+    let down_multi = f64::powf(1.0 - volatility, position.num_downs as f64);
+    underlying_price * up_multi * down_multi
 }
 
 fn get_node(price: f64, datetime: DateTime<Utc>, volatility: f64, position: &TreePosition) -> Node {
