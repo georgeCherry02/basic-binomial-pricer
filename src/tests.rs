@@ -14,6 +14,9 @@ use crate::risk_free_model;
 
 use test_log;
 
+#[cfg(test)]
+use log::info;
+
 #[test_log::test]
 fn one_year_forward_test() {
     let rfm = risk_free_model::get_annualised_risk_free_rate(5.0);
@@ -177,8 +180,9 @@ fn one_year_basic_put() {
         )
         .map(|tree: Tree| {
             let option_value = value_tree(&tree, &call, risk_free_rate);
-            assert!(option_value > 1.238);
-            assert!(option_value < 1.239);
+            info!("Found value={}", option_value);
+            assert!(option_value > 1.2377);
+            assert!(option_value < 1.2378);
         });
     }
 }

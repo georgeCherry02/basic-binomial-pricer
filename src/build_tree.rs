@@ -44,15 +44,23 @@ fn get_child_nodes<'tree>(tree: &'tree Tree, node: &Node) -> Option<(&'tree Node
 
 const EULERS_NUMBER: f64 = std::f64::consts::E;
 
+fn get_duration_in_years(t1: DateTime<Utc>, t2: DateTime<Utc>) -> f64 {
+    let diff: chrono::Duration = t2 - t1;
+    let diff_in_secs: i64 = diff.num_seconds();
+    const NUMBER_OF_SECONDS_IN_A_YEAR: f64 = 31536000.0;
+    diff_in_secs as f64 / NUMBER_OF_SECONDS_IN_A_YEAR
+}
+
 fn value_node(tree: &Tree, node: &Node, call: &Call, rfr: f64) -> f64 {
     get_child_nodes(tree, node)
         .map(|(up_node, down_node)| {
+            let duration = get_duration_in_years(node.datetime, up_node.datetime);
             let u = up_node.price / node.price;
             let d = down_node.price / node.price;
-            let p = (EULERS_NUMBER.powf(rfr) - d) / (u - d);
+            let p = (EULERS_NUMBER.powf(rfr * duration) - d) / (u - d);
             let up_value = value_node(tree, up_node, call, rfr);
             let down_value = value_node(tree, down_node, call, rfr);
-            EULERS_NUMBER.powf(-rfr) * ((p * up_value) + ((1.0f64 - p) * down_value))
+            EULERS_NUMBER.powf(-rfr * duration) * ((p * up_value) + ((1.0f64 - p) * down_value))
         })
         .unwrap_or(0.0f64.max(call.strike - node.price))
 }
