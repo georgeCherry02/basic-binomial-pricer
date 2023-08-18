@@ -161,7 +161,9 @@ fn one_year_basic_put() {
     let volatility = 0.2;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let number_of_years = 2;
-    let end_date = begin_date.with_year(begin_date.year() + 2).unwrap();
+    let end_date = begin_date
+        .with_year(begin_date.year() + number_of_years)
+        .unwrap();
     let call = Call {
         strike,
         volatility,
