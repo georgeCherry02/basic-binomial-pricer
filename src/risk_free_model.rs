@@ -23,10 +23,8 @@ const EULERS_NUMBER: f64 = std::f64::consts::E;
 
 impl RiskFreeModel for AnnualisedRiskFreeRate {
     fn apply(&self, start_value: f64, start_date: DateTime<Utc>, end_date: DateTime<Utc>) -> f64 {
-        info!("Hit apply");
         let diff_secs = end_date.signed_duration_since(start_date).num_seconds();
         let diff_years: f64 = (diff_secs as f64) / NUMBER_OF_SECONDS_IN_A_YEAR;
-        info!("Diff years={}", diff_years);
         start_value * EULERS_NUMBER.powf(self.ir_exponent * diff_years)
     }
 }
