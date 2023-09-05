@@ -1,7 +1,7 @@
 use chrono::prelude::Utc;
 use chrono::DateTime;
 
-use log::info;
+use log::debug;
 
 pub trait RiskFreeModel {
     fn apply(&self, start_value: f64, start_date: DateTime<Utc>, end_date: DateTime<Utc>) -> f64;
@@ -13,7 +13,7 @@ pub struct AnnualisedRiskFreeRate {
 
 pub fn get_annualised_risk_free_rate(apr: f64) -> Box<dyn RiskFreeModel> {
     let interest_rate = 1.0 + (apr / 100.0);
-    info!("Constructed model with interest_rate={}", interest_rate);
+    debug!("Constructed model with interest_rate={}", interest_rate);
     let ir_exponent = interest_rate.ln();
     Box::new(AnnualisedRiskFreeRate { ir_exponent })
 }

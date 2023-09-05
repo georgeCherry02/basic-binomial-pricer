@@ -6,9 +6,7 @@ use chrono::Datelike;
 use chrono::TimeZone;
 
 #[cfg(test)]
-use crate::build_tree::print_tree;
-#[cfg(test)]
-use crate::build_tree::{construct_tree, get_next_layer, value_tree, Node, Tree, TreePosition};
+use crate::build_tree::{construct_tree, get_next_layer, Node, Tree, TreePosition};
 #[cfg(test)]
 use crate::option::Call;
 #[cfg(test)]
@@ -179,9 +177,8 @@ fn one_year_basic_put() {
             end_date,
             num_steps,
         )
-        .map(|tree: Tree| {
-            print_tree(&tree);
-            let option_value = value_tree(&tree, &call, risk_free_rate);
+        .map(|mut tree: Tree| {
+            let option_value = tree.value(&call, risk_free_rate);
             assert!(option_value > 1.2377);
             assert!(option_value < 1.2378);
         });

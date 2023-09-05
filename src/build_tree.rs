@@ -6,7 +6,7 @@ use crate::result::PricerResult;
 
 use std::collections::HashMap;
 
-use log::error;
+use log::{debug, info};
 
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct TreePosition {
@@ -20,10 +20,11 @@ impl PartialEq for TreePosition {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node {
     pub price: f64,
     pub datetime: DateTime<Utc>,
+    pub pos: TreePosition,
     pub up: TreePosition,
     pub down: TreePosition,
 }
@@ -32,16 +33,7 @@ pub struct Node {
 pub struct Tree {
     pub head: Node,
     pub nodes: HashMap<TreePosition, Node>,
-}
-
-fn get_child_nodes<'tree>(tree: &'tree Tree, node: &Node) -> Option<(&'tree Node, &'tree Node)> {
-    let up_node = tree.nodes.get(&node.up);
-    if up_node.is_none() {
-        return None;
-    }
-    tree.nodes
-        .get(&node.down)
-        .map(|down_node: &Node| (up_node.unwrap(), down_node))
+    pub valuation_cache: HashMap<TreePosition, f64>,
 }
 
 const EULERS_NUMBER: f64 = std::f64::consts::E;
@@ -53,22 +45,49 @@ fn get_duration_in_years(t1: DateTime<Utc>, t2: DateTime<Utc>) -> f64 {
     diff_in_secs as f64 / NUMBER_OF_SECONDS_IN_A_YEAR
 }
 
-fn value_node(tree: &Tree, node: &Node, call: &Call, rfr: f64) -> f64 {
-    get_child_nodes(tree, node)
-        .map(|(up_node, down_node)| {
-            let duration = get_duration_in_years(node.datetime, up_node.datetime);
-            let u = up_node.price / node.price;
-            let d = down_node.price / node.price;
-            let p = (EULERS_NUMBER.powf(rfr * duration) - d) / (u - d);
-            let up_value = value_node(tree, up_node, call, rfr);
-            let down_value = value_node(tree, down_node, call, rfr);
-            EULERS_NUMBER.powf(-rfr * duration) * ((p * up_value) + ((1.0f64 - p) * down_value))
-        })
-        .unwrap_or(0.0f64.max(call.strike - node.price))
-}
+#[allow(dead_code)]
+impl Tree {
+    fn get_child_nodes(&self, node: &Node) -> Option<(Node, Node)> {
+        let up_node = self.nodes.get(&node.up);
+        if up_node.is_none() {
+            return None;
+        }
+        self.nodes
+            .get(&node.down)
+            .map(|down_node: &Node| (up_node.unwrap().clone(), down_node.clone()))
+    }
 
-pub fn value_tree(tree: &Tree, call: &Call, rfr: f64) -> f64 {
-    return value_node(tree, &tree.head, call, rfr);
+    fn calculate_node(&mut self, node: &Node, call: &Call, rfr: f64) -> f64 {
+        let value = self
+            .get_child_nodes(node)
+            .map(|(up_node, down_node)| -> f64 {
+                let duration = get_duration_in_years(node.datetime, up_node.datetime);
+                let u = up_node.price / node.price;
+                let d = down_node.price / node.price;
+                debug!("Found u={}, d={}", u, d);
+                let p = (EULERS_NUMBER.powf(rfr * duration) - d) / (u - d);
+                debug!("Found p={}", p);
+                let up_value = self.value_node(&up_node, call, rfr);
+                let down_value = self.value_node(&down_node, call, rfr);
+                EULERS_NUMBER.powf(-rfr * duration) * ((p * up_value) + ((1.0f64 - p) * down_value))
+            })
+            .unwrap_or(0.0f64.max(call.strike - node.price));
+        self.valuation_cache.insert(node.pos.clone(), value);
+        debug!(
+            "Calculated u={}, d={}, v={}",
+            node.pos.num_ups, node.pos.num_downs, value
+        );
+        value
+    }
+    fn value_node(&mut self, node: &Node, call: &Call, rfr: f64) -> f64 {
+        self.valuation_cache
+            .get(&node.pos)
+            .map(|f| f.clone())
+            .unwrap_or(self.calculate_node(node, call, rfr))
+    }
+    pub fn value(&mut self, call: &Call, rfr: f64) -> f64 {
+        self.value_node(&self.head.clone(), call, rfr)
+    }
 }
 
 fn new_tree(price: f64, datetime: DateTime<Utc>) -> Tree {
@@ -76,6 +95,10 @@ fn new_tree(price: f64, datetime: DateTime<Utc>) -> Tree {
         head: Node {
             price,
             datetime,
+            pos: TreePosition {
+                num_ups: 0,
+                num_downs: 0,
+            },
             up: TreePosition {
                 num_ups: 1,
                 num_downs: 0,
@@ -86,6 +109,7 @@ fn new_tree(price: f64, datetime: DateTime<Utc>) -> Tree {
             },
         },
         nodes: HashMap::new(),
+        valuation_cache: HashMap::new(),
     }
 }
 
@@ -146,6 +170,7 @@ fn get_node(price: f64, datetime: DateTime<Utc>, volatility: f64, position: &Tre
     Node {
         price,
         datetime,
+        pos: position.clone(),
         up,
         down,
     }
@@ -185,7 +210,7 @@ fn get_tree_depth(tree: &Tree) -> usize {
         it = tree.nodes.get(&it.up).unwrap();
         count += 1;
     }
-    return count;
+    return count + 1;
 }
 
 fn print_layer(tree: &Tree, layer: &Vec<TreePosition>, expected_width: &usize) {
@@ -215,7 +240,7 @@ fn print_layer(tree: &Tree, layer: &Vec<TreePosition>, expected_width: &usize) {
         i += 1;
     }
     out += "]";
-    error!("{}", out);
+    info!("{}", out);
 }
 
 pub fn print_tree(tree: &Tree) {
