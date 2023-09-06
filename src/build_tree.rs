@@ -1,7 +1,7 @@
 use chrono::prelude::Utc;
 use chrono::DateTime;
 
-use crate::option::Call;
+use crate::option::FinancialOption;
 use crate::result::PricerResult;
 
 use std::collections::HashMap;
@@ -57,7 +57,7 @@ impl Tree {
             .map(|down_node: &Node| (up_node.unwrap().clone(), down_node.clone()))
     }
 
-    fn calculate_node(&mut self, node: &Node, call: &Call, rfr: f64) -> f64 {
+    fn calculate_node<O: FinancialOption>(&mut self, node: &Node, option: &O, rfr: f64) -> f64 {
         let value = self
             .get_child_nodes(node)
             .map(|(up_node, down_node)| -> f64 {
@@ -67,11 +67,11 @@ impl Tree {
                 debug!("Found u={}, d={}", u, d);
                 let p = (EULERS_NUMBER.powf(rfr * duration) - d) / (u - d);
                 debug!("Found p={}", p);
-                let up_value = self.value_node(&up_node, call, rfr);
-                let down_value = self.value_node(&down_node, call, rfr);
+                let up_value = self.value_node(&up_node, option, rfr);
+                let down_value = self.value_node(&down_node, option, rfr);
                 EULERS_NUMBER.powf(-rfr * duration) * ((p * up_value) + ((1.0f64 - p) * down_value))
             })
-            .unwrap_or(0.0f64.max(call.strike - node.price));
+            .unwrap_or(0.0f64.max(option.value_if_executed(node.price)));
         self.valuation_cache.insert(node.pos.clone(), value);
         debug!(
             "Calculated u={}, d={}, v={}",
@@ -79,14 +79,14 @@ impl Tree {
         );
         value
     }
-    fn value_node(&mut self, node: &Node, call: &Call, rfr: f64) -> f64 {
+    fn value_node<O: FinancialOption>(&mut self, node: &Node, option: &O, rfr: f64) -> f64 {
         self.valuation_cache
             .get(&node.pos)
             .map(|f| f.clone())
-            .unwrap_or(self.calculate_node(node, call, rfr))
+            .unwrap_or(self.calculate_node(node, option, rfr))
     }
-    pub fn value(&mut self, call: &Call, rfr: f64) -> f64 {
-        self.value_node(&self.head.clone(), call, rfr)
+    pub fn value<O: FinancialOption>(&mut self, option: &O, rfr: f64) -> f64 {
+        self.value_node(&self.head.clone(), option, rfr)
     }
 }
 
