@@ -1,8 +1,10 @@
-mod build_tree;
 mod option;
 mod result;
 mod risk_free_model;
 mod tests;
+
+mod utils;
+mod tree;
 
 use chrono::prelude::Utc;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};

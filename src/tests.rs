@@ -6,11 +6,15 @@ use chrono::Datelike;
 use chrono::TimeZone;
 
 #[cfg(test)]
-use crate::build_tree::{construct_tree, get_next_layer, Node, Tree, TreePosition};
-#[cfg(test)]
 use crate::option::{get_call, get_put};
 #[cfg(test)]
 use crate::risk_free_model;
+#[cfg(test)]
+use crate::tree::build::{construct_tree, get_next_layer};
+#[cfg(test)]
+use crate::tree::node::{Node, Position};
+#[cfg(test)]
+use crate::tree::Tree;
 
 use test_log;
 
@@ -64,59 +68,40 @@ fn one_year_tree_one_step() {
             assert!(node.price == 100.0);
             assert!(node.datetime == begin_date);
             assert!(
-                node.up
-                    == TreePosition {
-                        num_ups: 1,
+                node.pos
+                    == Position {
+                        num_ups: 0,
                         num_downs: 0
                     }
             );
-            assert!(
-                node.down
-                    == TreePosition {
-                        num_ups: 0,
-                        num_downs: 1
-                    }
-            );
             assert!(tree.nodes.len() == 3);
-            assert!(tree.nodes.get(&node.up).is_some());
-            tree.nodes.get(&node.up).map(|node: &Node| {
+
+            let (up_pos, down_pos) = node.pos.get_branches();
+            assert!(tree.nodes.get(&up_pos).is_some());
+            tree.nodes.get(&up_pos).map(|node: &Node| {
                 assert!(node.price == 105.00);
                 assert!(node.datetime == end_date);
                 assert!(
-                    node.up
-                        == TreePosition {
-                            num_ups: 2,
+                    node.pos
+                        == Position {
+                            num_ups: 1,
                             num_downs: 0
                         }
                 );
-                assert!(
-                    node.down
-                        == TreePosition {
-                            num_ups: 1,
-                            num_downs: 1
-                        }
-                );
             });
-            tree.nodes.get(&node.down).map(|node: &Node| {
+            assert!(tree.nodes.get(&down_pos).is_some());
+            tree.nodes.get(&down_pos).map(|node: &Node| {
                 assert!(node.price > 94.999);
                 assert!(node.price < 95.001);
                 assert!(node.datetime == end_date);
                 assert!(
-                    node.up
-                        == TreePosition {
-                            num_ups: 1,
+                    node.pos
+                        == Position {
+                            num_ups: 0,
                             num_downs: 1
                         }
                 );
-                assert!(
-                    node.down
-                        == TreePosition {
-                            num_ups: 0,
-                            num_downs: 2
-                        }
-                );
             });
-            assert!(tree.nodes.get(&node.down).is_some());
         });
     }
 }
@@ -124,25 +109,25 @@ fn one_year_tree_one_step() {
 #[test_log::test]
 fn get_next_layer_basic() {
     let start_tree_positions = vec![
-        TreePosition {
+        Position {
             num_ups: 1,
             num_downs: 0,
         },
-        TreePosition {
+        Position {
             num_ups: 0,
             num_downs: 1,
         },
     ];
     let expected_end_positions = vec![
-        TreePosition {
+        Position {
             num_ups: 2,
             num_downs: 0,
         },
-        TreePosition {
+        Position {
             num_ups: 1,
             num_downs: 1,
         },
-        TreePosition {
+        Position {
             num_ups: 0,
             num_downs: 2,
         },
