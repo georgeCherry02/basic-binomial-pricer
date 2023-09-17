@@ -1,5 +1,5 @@
 use crate::option::{Call, FinancialOption, Put};
-use crate::result::PricerResult;
+use crate::result::{PricerError, PricerResult};
 use crate::utils::date::get_duration_in_years;
 
 use chrono::prelude::Utc;
@@ -20,6 +20,36 @@ fn get_d1_and_d2<O: FinancialOption>(
     (d1, d2)
 }
 
+fn calculate_black_scholes<O: FinancialOption>(
+    option: &O,
+    valuation_func: &dyn Fn(Normal, f64, f64, f64, f64, f64, f64) -> f64,
+    valuation_time: DateTime<Utc>,
+    current_underlying_value: f64,
+    rfr: f64,
+) -> PricerResult<f64> {
+    let duration_in_years = get_duration_in_years(valuation_time, option.expiry());
+    let (d1, d2) = get_d1_and_d2(option, duration_in_years, current_underlying_value, rfr);
+    let curried_func = |n: Normal| -> f64 {
+        valuation_func(
+            n,
+            option.strike(),
+            rfr,
+            duration_in_years,
+            current_underlying_value,
+            d1,
+            d2,
+        )
+    };
+    Normal::new(0.0, 1.0)
+        .map_err(|_| -> PricerError {
+            PricerError {
+                code: 2,
+                message: String::from("Failed to construct Gaussian distribution"),
+            }
+        })
+        .map(curried_func)
+}
+
 pub trait BlackScholes: FinancialOption {
     fn value_black_scholes(
         &self,
@@ -36,11 +66,24 @@ impl BlackScholes for Call {
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64> {
-        let duration_in_years = get_duration_in_years(valuation_time, self.expiry());
-        let (d1, d2) = get_d1_and_d2(self, duration_in_years, current_underlying_value, rfr);
-        let n = Normal::new(0.0, 1.0).unwrap();
-        Ok(current_underlying_value * n.cdf(d1)
-            - self.strike() * (-rfr * duration_in_years).exp() * n.cdf(d2))
+        let evaulate_black_scholes = |n: Normal,
+                                      strike: f64,
+                                      rfr: f64,
+                                      duration_in_years: f64,
+                                      current_underlying_value: f64,
+                                      d1: f64,
+                                      d2: f64|
+         -> f64 {
+            current_underlying_value * n.cdf(d1)
+                - strike * (-rfr * duration_in_years).exp() * n.cdf(d2)
+        };
+        calculate_black_scholes(
+            self,
+            &evaulate_black_scholes,
+            valuation_time,
+            current_underlying_value,
+            rfr,
+        )
     }
 }
 
@@ -51,9 +94,23 @@ impl BlackScholes for Put {
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64> {
-        let duration_in_years = get_duration_in_years(valuation_time, self.expiry());
-        let (d1, d2) = get_d1_and_d2(self, duration_in_years, current_underlying_value, rfr);
-        let n = Normal::new(0.0, 1.0).unwrap();
-        Ok(self.strike() * (-rfr * duration_in_years).exp() * n.cdf(-d2) - current_underlying_value * n.cdf(-d1))
+        let evaulate_black_scholes = |n: Normal,
+                                      strike: f64,
+                                      rfr: f64,
+                                      duration_in_years: f64,
+                                      current_underlying_value: f64,
+                                      d1: f64,
+                                      d2: f64|
+         -> f64 {
+            strike * (-rfr * duration_in_years).exp() * n.cdf(-d2)
+                - current_underlying_value * n.cdf(-d1)
+        };
+        calculate_black_scholes(
+            self,
+            &evaulate_black_scholes,
+            valuation_time,
+            current_underlying_value,
+            rfr,
+        )
     }
 }
