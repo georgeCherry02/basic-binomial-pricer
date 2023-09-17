@@ -21,8 +21,9 @@ fn get_d1_and_d2<O: FinancialOption>(
     current_underlying_value: f64,
     rfr: f64,
 ) -> (f64, f64) {
-    let d1 = (((current_underlying_value / option.strike()).ln())
-        + ((rfr + (option.volatility().powi(2) / 2f64)) * duration_in_years))
+    let ln_val_over_strike = (current_underlying_value / option.strike()).ln();
+    let rfr_plus_vol_squared_over_two = rfr + (option.volatility().powi(2) / 2f64);
+    let d1 = (ln_val_over_strike + rfr_plus_vol_squared_over_two * duration_in_years)
         / (option.volatility() * duration_in_years.sqrt());
     let d2 = d1 - option.volatility() * duration_in_years.sqrt();
     (d1, d2)
