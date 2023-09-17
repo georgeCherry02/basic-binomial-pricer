@@ -5,8 +5,6 @@ mod risk_free_model;
 mod tree;
 mod utils;
 
-mod tests;
-
 use chrono::prelude::Utc;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};
 use clap::{arg, Parser};

@@ -1,9 +1,13 @@
 use crate::option::{Call, FinancialOption, Put};
+#[cfg(test)]
+use crate::option::{get_call, get_put};
 use crate::result::{PricerError, PricerResult};
 use crate::utils::date::get_duration_in_years;
 
 use chrono::prelude::Utc;
 use chrono::DateTime;
+#[cfg(test)]
+use chrono::TimeZone;
 
 use statrs::distribution::{ContinuousCDF, Normal};
 use statrs::StatsError;
@@ -116,5 +120,43 @@ impl BlackScholes for Put {
             current_underlying_value,
             rfr,
         )
+    }
+}
+
+#[test]
+fn half_year_black_scholes_put() {
+    let underlying_price = 42f64;
+    let strike = 40f64;
+    let implied_volatility = 0.2f64;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
+    let put = get_put(strike, implied_volatility, end_date);
+    let rfr = 0.05;
+    #[allow(unused_must_use)]
+    {
+        put.value_black_scholes(begin_date, underlying_price, rfr)
+            .map(|value| {
+                assert!(value > 1.0934);
+                assert!(value < 1.0935);
+            });
+    }
+}
+
+#[test]
+fn half_year_black_scholes_call() {
+    let underlying_price = 42f64;
+    let strike = 40f64;
+    let implied_volatility = 0.2f64;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
+    let call = get_call(strike, implied_volatility, end_date);
+    let rfr = 0.05;
+    #[allow(unused_must_use)]
+    {
+        call.value_black_scholes(begin_date, underlying_price, rfr)
+            .map(|value| {
+                assert!(value > 4.0817);
+                assert!(value < 4.0818);
+            });
     }
 }
