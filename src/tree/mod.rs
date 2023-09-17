@@ -2,6 +2,8 @@ pub mod build;
 pub mod debug;
 pub mod node;
 
+mod tests;
+
 use node::{Node, Position};
 
 use crate::option::FinancialOption;

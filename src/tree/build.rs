@@ -6,6 +6,8 @@ use crate::result::PricerResult;
 
 use chrono::prelude::Utc;
 use chrono::DateTime;
+#[cfg(test)]
+use chrono::TimeZone;
 
 use std::collections::HashMap;
 
@@ -88,4 +90,96 @@ pub fn construct_tree(
         current_layer = get_next_layer(current_layer);
     }
     Ok(tree)
+}
+
+#[test]
+fn one_year_tree_one_step() {
+    let underlying_price: f64 = 100.0;
+    let volatility: f64 = 0.05;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1720539543000).unwrap();
+    let num_steps = 1;
+
+    let tree = construct_tree(
+        underlying_price,
+        volatility,
+        begin_date,
+        end_date,
+        num_steps,
+    );
+
+    #[allow(unused_must_use)]
+    {
+        assert!(tree.is_ok());
+        tree.map(|tree: Tree| {
+            let node = tree.head;
+            assert!(node.price == 100.0);
+            assert!(node.datetime == begin_date);
+            assert!(
+                node.pos
+                    == Position {
+                        num_ups: 0,
+                        num_downs: 0
+                    }
+            );
+            assert!(tree.nodes.len() == 3);
+
+            let (up_pos, down_pos) = node.pos.get_branches();
+            assert!(tree.nodes.get(&up_pos).is_some());
+            tree.nodes.get(&up_pos).map(|node: &Node| {
+                assert!(node.price == 105.00);
+                assert!(node.datetime == end_date);
+                assert!(
+                    node.pos
+                        == Position {
+                            num_ups: 1,
+                            num_downs: 0
+                        }
+                );
+            });
+            assert!(tree.nodes.get(&down_pos).is_some());
+            tree.nodes.get(&down_pos).map(|node: &Node| {
+                assert!(node.price > 94.999);
+                assert!(node.price < 95.001);
+                assert!(node.datetime == end_date);
+                assert!(
+                    node.pos
+                        == Position {
+                            num_ups: 0,
+                            num_downs: 1
+                        }
+                );
+            });
+        });
+    }
+}
+
+#[test]
+fn get_next_layer_basic() {
+    let start_tree_positions = vec![
+        Position {
+            num_ups: 1,
+            num_downs: 0,
+        },
+        Position {
+            num_ups: 0,
+            num_downs: 1,
+        },
+    ];
+    let expected_end_positions = vec![
+        Position {
+            num_ups: 2,
+            num_downs: 0,
+        },
+        Position {
+            num_ups: 1,
+            num_downs: 1,
+        },
+        Position {
+            num_ups: 0,
+            num_downs: 2,
+        },
+    ];
+    let processed_end_positions = get_next_layer(start_tree_positions);
+    assert!(processed_end_positions == expected_end_positions);
 }
