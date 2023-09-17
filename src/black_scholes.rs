@@ -6,6 +6,14 @@ use chrono::prelude::Utc;
 use chrono::DateTime;
 
 use statrs::distribution::{ContinuousCDF, Normal};
+use statrs::StatsError;
+
+fn failed_to_create_gaussian_error(_: StatsError) -> PricerError {
+    PricerError {
+        code: 2,
+        message: String::from("Failed to construct Gaussian distribution"),
+    }
+}
 
 fn get_d1_and_d2<O: FinancialOption>(
     option: &O,
@@ -41,12 +49,7 @@ fn calculate_black_scholes<O: FinancialOption>(
         )
     };
     Normal::new(0.0, 1.0)
-        .map_err(|_| -> PricerError {
-            PricerError {
-                code: 2,
-                message: String::from("Failed to construct Gaussian distribution"),
-            }
-        })
+        .map_err(failed_to_create_gaussian_error)
         .map(curried_func)
 }
 
