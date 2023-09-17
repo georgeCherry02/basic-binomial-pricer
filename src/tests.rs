@@ -6,6 +6,8 @@ use chrono::Datelike;
 use chrono::TimeZone;
 
 #[cfg(test)]
+use crate::black_scholes::BlackScholes;
+#[cfg(test)]
 use crate::option::{get_call, get_put};
 #[cfg(test)]
 use crate::risk_free_model;
@@ -15,6 +17,9 @@ use crate::tree::build::{construct_tree, get_next_layer};
 use crate::tree::node::{Node, Position};
 #[cfg(test)]
 use crate::tree::Tree;
+
+#[cfg(test)]
+use log::info;
 
 use test_log;
 
@@ -194,4 +199,24 @@ fn two_year_basic_call() {
             assert!(option_value < 3.1435);
         });
     }
+}
+
+#[test_log::test]
+fn half_year_black_scholes() {
+    let underlying_price = 42f64;
+    let strike = 40f64;
+    let implied_volatility = 0.2f64;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
+    let put = get_put(strike, implied_volatility, end_date);
+    let rfr = 0.05;
+    #[allow(unused_must_use)]
+    {
+        put.value_black_scholes(begin_date, underlying_price, rfr)
+            .and_then(|value| {
+                info!("value={}", value);
+                Ok(())
+            });
+    }
+    assert!(false);
 }

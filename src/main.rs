@@ -1,10 +1,11 @@
+mod black_scholes;
 mod option;
 mod result;
 mod risk_free_model;
-mod tests;
-
-mod utils;
 mod tree;
+mod utils;
+
+mod tests;
 
 use chrono::prelude::Utc;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};
