@@ -31,7 +31,7 @@ fn get_d1_and_d2<O: FinancialOption>(
 
 fn calculate_black_scholes<O: FinancialOption>(
     option: &O,
-    valuation_func: &dyn Fn(Normal, f64, f64, f64, f64, f64, f64) -> f64,
+    valuation_func: &dyn Fn(Normal, f64, f64, f64, f64, f64, f64) -> f64, // This is horrifying...
     valuation_time: DateTime<Utc>,
     current_underlying_value: f64,
     rfr: f64,
@@ -70,7 +70,7 @@ impl BlackScholes for Call {
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64> {
-        let evaulate_black_scholes = |n: Normal,
+        let evaluate_black_scholes = |n: Normal,
                                       strike: f64,
                                       rfr: f64,
                                       duration_in_years: f64,
@@ -83,7 +83,7 @@ impl BlackScholes for Call {
         };
         calculate_black_scholes(
             self,
-            &evaulate_black_scholes,
+            &evaluate_black_scholes,
             valuation_time,
             current_underlying_value,
             rfr,
@@ -98,7 +98,7 @@ impl BlackScholes for Put {
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64> {
-        let evaulate_black_scholes = |n: Normal,
+        let evaluate_black_scholes = |n: Normal,
                                       strike: f64,
                                       rfr: f64,
                                       duration_in_years: f64,
@@ -111,7 +111,7 @@ impl BlackScholes for Put {
         };
         calculate_black_scholes(
             self,
-            &evaulate_black_scholes,
+            &evaluate_black_scholes,
             valuation_time,
             current_underlying_value,
             rfr,
