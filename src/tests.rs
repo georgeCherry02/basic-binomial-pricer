@@ -18,9 +18,6 @@ use crate::tree::node::{Node, Position};
 #[cfg(test)]
 use crate::tree::Tree;
 
-#[cfg(test)]
-use log::info;
-
 use test_log;
 
 #[test_log::test]
@@ -202,7 +199,7 @@ fn two_year_basic_call() {
 }
 
 #[test_log::test]
-fn half_year_black_scholes() {
+fn half_year_black_scholes_put() {
     let underlying_price = 42f64;
     let strike = 40f64;
     let implied_volatility = 0.2f64;
@@ -213,10 +210,28 @@ fn half_year_black_scholes() {
     #[allow(unused_must_use)]
     {
         put.value_black_scholes(begin_date, underlying_price, rfr)
-            .and_then(|value| {
-                info!("value={}", value);
-                Ok(())
+            .map(|value| {
+                assert!(value > 1.0934);
+                assert!(value < 1.0935);
             });
     }
-    assert!(false);
+}
+
+#[test_log::test]
+fn half_year_black_scholes_call() {
+    let underlying_price = 42f64;
+    let strike = 40f64;
+    let implied_volatility = 0.2f64;
+    let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
+    let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
+    let call = get_call(strike, implied_volatility, end_date);
+    let rfr = 0.05;
+    #[allow(unused_must_use)]
+    {
+        call.value_black_scholes(begin_date, underlying_price, rfr)
+            .map(|value| {
+                assert!(value > 4.0817);
+                assert!(value < 4.0818);
+            });
+    }
 }
