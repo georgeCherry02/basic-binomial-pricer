@@ -1,6 +1,6 @@
-use crate::option::{Call, FinancialOption, Put};
 #[cfg(test)]
 use crate::option::{get_call, get_put};
+use crate::option::{Call, FinancialOption, Put};
 use crate::result::{PricerError, PricerResult};
 use crate::utils::date::get_duration_in_years;
 

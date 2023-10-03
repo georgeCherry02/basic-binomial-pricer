@@ -1,13 +1,14 @@
-use crate::tree::Tree;
 use crate::tree::build::get_next_layer;
 use crate::tree::node::{Node, Position};
+use crate::tree::Tree;
 
 use log::info;
 
 fn get_up_node(node: &Node) -> Position {
-    Position{
+    Position {
         num_ups: node.pos.num_ups + 1,
-        num_downs: node.pos.num_downs}
+        num_downs: node.pos.num_downs,
+    }
 }
 
 fn get_tree_depth(tree: &Tree) -> usize {

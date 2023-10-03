@@ -1,5 +1,5 @@
-use chrono::DateTime;
 use chrono::prelude::Utc;
+use chrono::DateTime;
 
 pub fn get_duration_in_years(t1: DateTime<Utc>, t2: DateTime<Utc>) -> f64 {
     let diff: chrono::Duration = t2 - t1;

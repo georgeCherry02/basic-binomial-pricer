@@ -1,8 +1,8 @@
-use crate::tree::Tree;
 use crate::tree::node::{Node, Position};
+use crate::tree::Tree;
 
-use crate::utils::date as date_utils;
 use crate::result::PricerResult;
+use crate::utils::date as date_utils;
 
 use chrono::prelude::Utc;
 use chrono::DateTime;
@@ -81,9 +81,7 @@ pub fn construct_tree(
     for datetime in date_range {
         let nodes: Vec<Node> = current_layer
             .iter()
-            .map(|position: &Position| {
-                get_node(underlying_price, datetime, volatility, position)
-            })
+            .map(|position: &Position| get_node(underlying_price, datetime, volatility, position))
             .collect();
         tree.nodes
             .extend(current_layer.clone().into_iter().zip(nodes.into_iter()));

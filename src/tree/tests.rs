@@ -1,7 +1,7 @@
 #[cfg(test)]
 use crate::option::{get_call, get_put};
 #[cfg(test)]
-use crate::tree::{Tree, build::construct_tree};
+use crate::tree::{build::construct_tree, Tree};
 
 #[cfg(test)]
 use chrono::prelude::Utc;

@@ -24,7 +24,7 @@ impl FromStr for OptionType {
             "put" => Ok(OptionType::PUT),
             _ => Err(PricerError {
                 code: 2,
-                message: String::from("Tried to price invalid type of option"),
+                message: String::from("Tried to parse invalid type of option"),
             }),
         }
     }
@@ -52,9 +52,22 @@ fn get_expiry_datetime(expiry_nd: NaiveDate) -> PricerResult<DateTime<Utc>> {
 
 fn construct_option(args: &Cli, expiry: DateTime<Utc>) -> PricerResult<Box<dyn BlackScholes>> {
     match args.option_type.as_str() {
-        "call" => Ok(Box::new(get_call(args.strike_price, args.volatility, expiry))),
-        "put" => Ok(Box::new(get_put(args.strike_price, args.volatility, expiry))),
-        _ => Err(PricerError{code: 1, message: String::from("Failed to provide valid type of option, can price \"call\"s and \"put\"s")}),
+        "call" => Ok(Box::new(get_call(
+            args.strike_price,
+            args.volatility,
+            expiry,
+        ))),
+        "put" => Ok(Box::new(get_put(
+            args.strike_price,
+            args.volatility,
+            expiry,
+        ))),
+        _ => Err(PricerError {
+            code: 2,
+            message: String::from(
+                "Failed to provide valid type of option, can price \"call\"s and \"put\"s",
+            ),
+        }),
     }
 }
 
@@ -62,7 +75,7 @@ fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
     let naive_date = args.expiry;
     let expiry = get_expiry_datetime(naive_date)?;
     let option = construct_option(&args, expiry)?;
-    Ok(ValidatedInterface{
+    Ok(ValidatedInterface {
         underlying_price: args.underlying_price,
         option,
         annualised_rate: args.apr,
@@ -70,7 +83,15 @@ fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
 }
 
 pub fn price(args: Cli) -> PricerResult<()> {
-    parse_cli(args).and_then(|interface| {
-        interface.option.value_black_scholes(Utc::now(), interface.underlying_price, interface.annualised_rate)
-    }).map(|price| { info!("Priced Black-Scholes at {}", price); })
+    parse_cli(args)
+        .and_then(|interface| {
+            interface.option.value_black_scholes(
+                Utc::now(),
+                interface.underlying_price,
+                interface.annualised_rate,
+            )
+        })
+        .map(|price| {
+            info!("Priced Black-Scholes at {}", price);
+        })
 }
