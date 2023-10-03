@@ -14,7 +14,7 @@ use result::{PricerError, PricerResult};
 #[derive(Parser)]
 pub struct Cli {
     pub underlying_price: f64,
-    pub option_type: String,
+    pub option_type: cli::OptionType,
     pub strike_price: f64,
     pub volatility: f64,
     pub expiry: NaiveDate,

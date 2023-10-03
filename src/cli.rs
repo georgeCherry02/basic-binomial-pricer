@@ -11,7 +11,8 @@ use log::info;
 
 use std::str::FromStr;
 
-enum OptionType {
+#[derive(Clone)]
+pub enum OptionType {
     CALL,
     PUT,
 }
@@ -51,23 +52,17 @@ fn get_expiry_datetime(expiry_nd: NaiveDate) -> PricerResult<DateTime<Utc>> {
 }
 
 fn construct_option(args: &Cli, expiry: DateTime<Utc>) -> PricerResult<Box<dyn BlackScholes>> {
-    match args.option_type.as_str() {
-        "call" => Ok(Box::new(get_call(
+    match args.option_type {
+        OptionType::CALL => Ok(Box::new(get_call(
             args.strike_price,
             args.volatility,
             expiry,
         ))),
-        "put" => Ok(Box::new(get_put(
+        OptionType::PUT => Ok(Box::new(get_put(
             args.strike_price,
             args.volatility,
             expiry,
         ))),
-        _ => Err(PricerError {
-            code: 2,
-            message: String::from(
-                "Failed to provide valid type of option, can price \"call\"s and \"put\"s",
-            ),
-        }),
     }
 }
 
