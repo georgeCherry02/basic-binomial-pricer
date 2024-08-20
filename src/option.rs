@@ -1,8 +1,12 @@
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
+
 use chrono::prelude::Utc;
 use chrono::DateTime;
 
 use std::fmt;
 
+#[pyclass]
 pub struct Call {
     strike: f64,
     volatility: f64,
@@ -17,6 +21,21 @@ pub fn get_call(strike: f64, volatility: f64, expiry: DateTime<Utc>) -> Call {
     }
 }
 
+fn parse_dt(expiry_str: String) -> PyResult<DateTime<Utc>> {
+    DateTime::parse_from_rfc3339(&expiry_str)
+        .map_err(|e| PyValueError::new_err(format!("Failed to parse datetime {}", e).to_string()))
+        .map(|exp| exp.into())
+}
+
+#[pymethods]
+impl Call {
+    #[new]
+    pub fn new(strike: f64, volatility: f64, expiry_str: String) -> PyResult<Call> {
+        parse_dt(expiry_str).map(|expiry| get_call(strike, volatility, expiry))
+    }
+}
+
+#[pyclass]
 pub struct Put {
     strike: f64,
     volatility: f64,
@@ -28,6 +47,14 @@ pub fn get_put(strike: f64, volatility: f64, expiry: DateTime<Utc>) -> Put {
         strike,
         volatility,
         expiry,
+    }
+}
+
+#[pymethods]
+impl Put {
+    #[new]
+    pub fn new(strike: f64, volatility: f64, expiry_str: String) -> PyResult<Put> {
+        parse_dt(expiry_str).map(|expiry| get_put(strike, volatility, expiry))
     }
 }
 
