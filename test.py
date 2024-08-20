@@ -1,13 +1,23 @@
 from datetime import datetime
-from pricer import Call
+from dateutil.relativedelta import relativedelta
+from pricer import Call, price_black_scholes
 import pytz
 
-def get_now_str() -> str:
-    return pytz.utc.localize(datetime.now()).isoformat()
+def get_dt_str(dt: datetime) -> str:
+    return pytz.utc.localize(dt).isoformat()
 
 def __main__():
-    call = Call(100.0, 5.0, get_now_str())
-    print(call)
+    one_year_more = datetime.now() + relativedelta(days=90)
+    expiry = get_dt_str(one_year_more)
+    strike = 110.0
+    volatility = 0.2
+
+    underlying_price = 100.0
+    apr = 0.05
+
+    call = Call(strike, volatility, expiry)
+    value = price_black_scholes(call, underlying_price, apr)
+    print(f"Priced call at {value}")
 
 if __name__ == "__main__":
     __main__()

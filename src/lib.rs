@@ -1,16 +1,25 @@
+mod black_scholes;
 mod option;
+mod result;
+mod utils;
 
-use option::{Call, Put};
 use pyo3::prelude::*;
 
+use chrono::prelude::Utc;
+
+use black_scholes::BlackScholes;
+use option::{Call, Put};
+
 #[pyfunction]
-pub fn price_binomial() -> PyResult<f64> {
-    Ok(5.0)
+pub fn price_black_scholes(py_call: Bound<Call>, underlying_price: f64, apr: f64) -> PyResult<f64> {
+    let call = py_call.borrow();
+    call.value_black_scholes(Utc::now(), underlying_price, apr)
+        .map_err(|e| e.into())
 }
 
 #[pymodule]
 fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(price_binomial, m)?)?;
+    m.add_function(wrap_pyfunction!(price_black_scholes, m)?)?;
     m.add_class::<Put>()?;
     m.add_class::<Call>()?;
     Ok(())

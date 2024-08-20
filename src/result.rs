@@ -1,5 +1,8 @@
 use std::{error, fmt};
 
+use pyo3::exceptions::PyRuntimeError;
+use pyo3::prelude::PyErr;
+
 #[derive(Debug)]
 pub struct PricerError {
     pub message: String,
@@ -20,5 +23,11 @@ pub fn make_not_implemented_error() -> PricerError {
     PricerError {
         message: String::from("Behaviour not implemented yet"),
         code: 999,
+    }
+}
+
+impl std::convert::From<PricerError> for PyErr {
+    fn from(value: PricerError) -> Self {
+        PyRuntimeError::new_err(value.message)
     }
 }
