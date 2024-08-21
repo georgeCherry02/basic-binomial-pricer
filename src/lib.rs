@@ -29,7 +29,7 @@ pub fn price_black_scholes(
 }
 
 #[pymodule]
-fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn pricer_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     pyo3_log::init();
 
     m.add_function(wrap_pyfunction!(price_black_scholes, m)?)?;
