@@ -1,13 +1,13 @@
 mod black_scholes;
-mod option;
-mod result;
+pub mod option;
+pub mod result;
 mod utils;
 
 use pyo3::prelude::*;
 
 use chrono::prelude::Utc;
 
-use black_scholes::BlackScholes;
+pub use black_scholes::BlackScholes;
 use option::{Call, Put};
 
 use log::debug;
