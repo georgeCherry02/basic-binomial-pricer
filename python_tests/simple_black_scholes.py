@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from pricer_lib import Call, price_black_scholes
+from pricer import Call, price_black_scholes
 from .test_utils import get_dt_str, is_close
 
 def test_washington_uni():
