@@ -9,16 +9,11 @@ use std::fmt;
 #[pyclass]
 pub struct Call {
     strike: f64,
-    volatility: f64,
     expiry: DateTime<Utc>,
 }
 
-pub fn get_call(strike: f64, volatility: f64, expiry: DateTime<Utc>) -> Call {
-    Call {
-        strike,
-        volatility,
-        expiry,
-    }
+pub fn get_call(strike: f64, expiry: DateTime<Utc>) -> Call {
+    Call { strike, expiry }
 }
 
 fn parse_dt(expiry_str: String) -> PyResult<DateTime<Utc>> {
@@ -30,37 +25,31 @@ fn parse_dt(expiry_str: String) -> PyResult<DateTime<Utc>> {
 #[pymethods]
 impl Call {
     #[new]
-    pub fn new(strike: f64, volatility: f64, expiry_str: String) -> PyResult<Call> {
-        parse_dt(expiry_str).map(|expiry| get_call(strike, volatility, expiry))
+    pub fn new(strike: f64, expiry_str: String) -> PyResult<Call> {
+        parse_dt(expiry_str).map(|expiry| get_call(strike, expiry))
     }
 }
 
 #[pyclass]
 pub struct Put {
     strike: f64,
-    volatility: f64,
     expiry: DateTime<Utc>,
 }
 
-pub fn get_put(strike: f64, volatility: f64, expiry: DateTime<Utc>) -> Put {
-    Put {
-        strike,
-        volatility,
-        expiry,
-    }
+pub fn get_put(strike: f64, expiry: DateTime<Utc>) -> Put {
+    Put { strike, expiry }
 }
 
 #[pymethods]
 impl Put {
     #[new]
-    pub fn new(strike: f64, volatility: f64, expiry_str: String) -> PyResult<Put> {
-        parse_dt(expiry_str).map(|expiry| get_put(strike, volatility, expiry))
+    pub fn new(strike: f64, expiry_str: String) -> PyResult<Put> {
+        parse_dt(expiry_str).map(|expiry| get_put(strike, expiry))
     }
 }
 
 pub trait FinancialOption {
     fn strike(&self) -> f64;
-    fn volatility(&self) -> f64;
     fn expiry(&self) -> DateTime<Utc>;
     fn value_if_executed(&self, underlying_value: f64) -> f64;
 }
@@ -68,9 +57,6 @@ pub trait FinancialOption {
 impl FinancialOption for Call {
     fn strike(&self) -> f64 {
         self.strike
-    }
-    fn volatility(&self) -> f64 {
-        self.volatility
     }
     fn expiry(&self) -> DateTime<Utc> {
         self.expiry
@@ -84,9 +70,6 @@ impl FinancialOption for Put {
     fn strike(&self) -> f64 {
         self.strike
     }
-    fn volatility(&self) -> f64 {
-        self.volatility
-    }
     fn expiry(&self) -> DateTime<Utc> {
         self.expiry
     }
@@ -98,10 +81,9 @@ impl FinancialOption for Put {
 fn local_fmt<T: FinancialOption>(t: &T, prefix: &str, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(
         f,
-        "{}[strike={}, volatility={}, expiry={}]",
+        "{}[strike={}, expiry={}]",
         prefix,
         t.strike(),
-        t.volatility(),
         t.expiry(),
     )
 }

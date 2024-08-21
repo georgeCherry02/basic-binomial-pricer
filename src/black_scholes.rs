@@ -22,14 +22,15 @@ fn failed_to_create_gaussian_error(_: StatsError) -> PricerError {
 fn get_d1_and_d2<O: FinancialOption>(
     option: &O,
     duration_in_years: f64,
+    volatility: f64,
     current_underlying_value: f64,
     rfr: f64,
 ) -> (f64, f64) {
     let ln_val_over_strike = (current_underlying_value / option.strike()).ln();
-    let rfr_plus_vol_squared_over_two = rfr + (option.volatility().powi(2) / 2f64);
+    let rfr_plus_vol_squared_over_two = rfr + (volatility.powi(2) / 2f64);
     let d1 = (ln_val_over_strike + rfr_plus_vol_squared_over_two * duration_in_years)
-        / (option.volatility() * duration_in_years.sqrt());
-    let d2 = d1 - option.volatility() * duration_in_years.sqrt();
+        / (volatility * duration_in_years.sqrt());
+    let d2 = d1 - volatility * duration_in_years.sqrt();
     (d1, d2)
 }
 
@@ -37,11 +38,18 @@ fn calculate_black_scholes<O: FinancialOption>(
     option: &O,
     valuation_func: &dyn Fn(Normal, f64, f64, f64, f64, f64, f64) -> f64, // This is horrifying...
     valuation_time: DateTime<Utc>,
+    volatility: f64,
     current_underlying_value: f64,
     rfr: f64,
 ) -> PricerResult<f64> {
     let duration_in_years = get_duration_in_years(valuation_time, option.expiry());
-    let (d1, d2) = get_d1_and_d2(option, duration_in_years, current_underlying_value, rfr);
+    let (d1, d2) = get_d1_and_d2(
+        option,
+        duration_in_years,
+        volatility,
+        current_underlying_value,
+        rfr,
+    );
     let curried_func = |n: Normal| -> f64 {
         valuation_func(
             n,
@@ -62,6 +70,7 @@ pub trait BlackScholes: FinancialOption {
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
+        volatility: f64,
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64>;
@@ -71,6 +80,7 @@ impl BlackScholes for Call {
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
+        volatility: f64,
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64> {
@@ -89,6 +99,7 @@ impl BlackScholes for Call {
             self,
             &evaluate_black_scholes,
             valuation_time,
+            volatility,
             current_underlying_value,
             rfr,
         )
@@ -99,6 +110,7 @@ impl BlackScholes for Put {
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
+        volatility: f64,
         current_underlying_value: f64,
         rfr: f64,
     ) -> PricerResult<f64> {
@@ -117,6 +129,7 @@ impl BlackScholes for Put {
             self,
             &evaluate_black_scholes,
             valuation_time,
+            volatility,
             current_underlying_value,
             rfr,
         )
@@ -130,11 +143,11 @@ fn half_year_black_scholes_put() {
     let implied_volatility = 0.2f64;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
-    let put = get_put(strike, implied_volatility, end_date);
+    let put = get_put(strike, end_date);
     let rfr = 0.05;
     #[allow(unused_must_use)]
     {
-        put.value_black_scholes(begin_date, underlying_price, rfr)
+        put.value_black_scholes(begin_date, implied_volatility, underlying_price, rfr)
             .map(|value| {
                 assert!(value > 1.0934);
                 assert!(value < 1.0935);
@@ -149,11 +162,11 @@ fn half_year_black_scholes_call() {
     let implied_volatility = 0.2f64;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
-    let call = get_call(strike, implied_volatility, end_date);
+    let call = get_call(strike, end_date);
     let rfr = 0.05;
     #[allow(unused_must_use)]
     {
-        call.value_black_scholes(begin_date, underlying_price, rfr)
+        call.value_black_scholes(begin_date, implied_volatility, underlying_price, rfr)
             .map(|value| {
                 assert!(value > 4.0817);
                 assert!(value < 4.0818);

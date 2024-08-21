@@ -13,9 +13,14 @@ use option::{Call, Put};
 use log::debug;
 
 #[pyfunction]
-pub fn price_black_scholes(py_call: Bound<Call>, underlying_price: f64, apr: f64) -> PyResult<f64> {
+pub fn price_black_scholes(
+    py_call: Bound<Call>,
+    volatility: f64,
+    underlying_price: f64,
+    apr: f64,
+) -> PyResult<f64> {
     let call = py_call.borrow();
-    call.value_black_scholes(Utc::now(), underlying_price, apr)
+    call.value_black_scholes(Utc::now(), volatility, underlying_price, apr)
         .map_err(|e| e.into())
         .map(|r| {
             debug!("Valued call at {}", r);

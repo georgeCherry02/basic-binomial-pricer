@@ -32,8 +32,9 @@ impl FromStr for OptionType {
 }
 
 struct ValidatedInterface {
-    underlying_price: f64,
     option: Box<dyn BlackScholes>,
+    volatility: f64,
+    underlying_price: f64,
     annualised_rate: f64,
 }
 
@@ -53,16 +54,8 @@ fn get_expiry_datetime(expiry_nd: NaiveDate) -> PricerResult<DateTime<Utc>> {
 
 fn construct_option(args: &Cli, expiry: DateTime<Utc>) -> PricerResult<Box<dyn BlackScholes>> {
     match args.option_type {
-        OptionType::CALL => Ok(Box::new(get_call(
-            args.strike_price,
-            args.volatility,
-            expiry,
-        ))),
-        OptionType::PUT => Ok(Box::new(get_put(
-            args.strike_price,
-            args.volatility,
-            expiry,
-        ))),
+        OptionType::CALL => Ok(Box::new(get_call(args.strike_price, expiry))),
+        OptionType::PUT => Ok(Box::new(get_put(args.strike_price, expiry))),
     }
 }
 
@@ -71,8 +64,9 @@ fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
     let expiry = get_expiry_datetime(naive_date)?;
     let option = construct_option(&args, expiry)?;
     Ok(ValidatedInterface {
-        underlying_price: args.underlying_price,
         option,
+        volatility: args.volatility,
+        underlying_price: args.underlying_price,
         annualised_rate: args.apr,
     })
 }
@@ -82,6 +76,7 @@ pub fn price(args: Cli) -> PricerResult<()> {
         .and_then(|interface| {
             interface.option.value_black_scholes(
                 Utc::now(),
+                interface.volatility,
                 interface.underlying_price,
                 interface.annualised_rate,
             )
