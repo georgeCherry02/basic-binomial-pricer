@@ -16,3 +16,4 @@ statrs = "0.16.0"
 test-log = "0.2.12"
 pyo3 = { version = "0.22.2", features = ["extension-module"] }
 pyo3-log = "0.11.0"
+itertools = "0.13.0"
