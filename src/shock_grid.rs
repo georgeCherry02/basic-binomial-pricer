@@ -2,7 +2,6 @@ use crate::option::Call;
 use crate::BlackScholes;
 
 use pyo3::prelude::*;
-use pyo3::types::PyList;
 
 use chrono::Utc;
 use itertools::Itertools;
