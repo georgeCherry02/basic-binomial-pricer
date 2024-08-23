@@ -37,5 +37,5 @@ def test_shockgrid_pricing():
     call = example_call()
     risk_free_rate = 0.04
     shock_grid = generate_shock_grid_py()
-    test = shock_grid.value_with_black_scholes(call, risk_free_rate)
+    test = shock_grid.value_black_scholes(call, risk_free_rate)
     assert is_close(test[50][50], 2.0714, 0.0001), "Valued shocked 4 month correctly"

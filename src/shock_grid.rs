@@ -33,7 +33,7 @@ impl ShockGrid {
             .take(self.dimensions.0)
             .collect()
     }
-    fn value_with_black_scholes(&self, py_call: Bound<Call>, risk_free_rate: f64) -> Vec<Vec<f64>> {
+    fn value_black_scholes(&self, py_call: Bound<Call>, risk_free_rate: f64) -> Vec<Vec<f64>> {
         let call: &Call = py_call.get();
         let now = Utc::now();
         let valuations = self.shocks.iter().map(|shock_point| {
