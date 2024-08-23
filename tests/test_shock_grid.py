@@ -6,7 +6,8 @@ from .test_utils import get_dt_str, is_close
 
 def example_call():
     strike = 45.0 
-    return Call(strike, get_dt_str(datetime.now() + relativedelta(months=4)))
+    cost = 0.0
+    return Call(strike, get_dt_str(datetime.now() + relativedelta(months=4)), cost)
 
 def generate_shock_grid_py():
     price = 40.0

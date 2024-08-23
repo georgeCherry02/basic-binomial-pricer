@@ -64,6 +64,7 @@ fn calculate_black_scholes<O: FinancialOption>(
     Normal::new(0.0, 1.0)
         .map_err(failed_to_create_gaussian_error)
         .map(curried_func)
+        .map(|value| value - option.cost())
 }
 
 pub trait BlackScholes: FinancialOption {
@@ -140,10 +141,11 @@ impl BlackScholes for Put {
 fn half_year_black_scholes_put() {
     let underlying_price = 42f64;
     let strike = 40f64;
+    let cost = 0f64;
     let implied_volatility = 0.2f64;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
-    let put = get_put(strike, end_date);
+    let put = get_put(strike, end_date, cost);
     let rfr = 0.05;
     #[allow(unused_must_use)]
     {
@@ -159,10 +161,11 @@ fn half_year_black_scholes_put() {
 fn half_year_black_scholes_call() {
     let underlying_price = 42f64;
     let strike = 40f64;
+    let cost = 0f64;
     let implied_volatility = 0.2f64;
     let begin_date = Utc.timestamp_millis_opt(1688917143000).unwrap();
     let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
-    let call = get_call(strike, end_date);
+    let call = get_call(strike, end_date, cost);
     let rfr = 0.05;
     #[allow(unused_must_use)]
     {

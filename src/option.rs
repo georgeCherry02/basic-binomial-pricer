@@ -10,10 +10,15 @@ use std::fmt;
 pub struct Call {
     strike: f64,
     expiry: DateTime<Utc>,
+    cost: f64,
 }
 
-pub fn get_call(strike: f64, expiry: DateTime<Utc>) -> Call {
-    Call { strike, expiry }
+pub fn get_call(strike: f64, expiry: DateTime<Utc>, cost: f64) -> Call {
+    Call {
+        strike,
+        expiry,
+        cost,
+    }
 }
 
 fn parse_dt(expiry_str: String) -> PyResult<DateTime<Utc>> {
@@ -25,8 +30,8 @@ fn parse_dt(expiry_str: String) -> PyResult<DateTime<Utc>> {
 #[pymethods]
 impl Call {
     #[new]
-    pub fn new(strike: f64, expiry_str: String) -> PyResult<Call> {
-        parse_dt(expiry_str).map(|expiry| get_call(strike, expiry))
+    pub fn new(strike: f64, expiry_str: String, cost: f64) -> PyResult<Call> {
+        parse_dt(expiry_str).map(|expiry| get_call(strike, expiry, cost))
     }
 }
 
@@ -34,23 +39,29 @@ impl Call {
 pub struct Put {
     strike: f64,
     expiry: DateTime<Utc>,
+    cost: f64,
 }
 
-pub fn get_put(strike: f64, expiry: DateTime<Utc>) -> Put {
-    Put { strike, expiry }
+pub fn get_put(strike: f64, expiry: DateTime<Utc>, cost: f64) -> Put {
+    Put {
+        strike,
+        expiry,
+        cost,
+    }
 }
 
 #[pymethods]
 impl Put {
     #[new]
-    pub fn new(strike: f64, expiry_str: String) -> PyResult<Put> {
-        parse_dt(expiry_str).map(|expiry| get_put(strike, expiry))
+    pub fn new(strike: f64, expiry_str: String, cost: f64) -> PyResult<Put> {
+        parse_dt(expiry_str).map(|expiry| get_put(strike, expiry, cost))
     }
 }
 
 pub trait FinancialOption {
     fn strike(&self) -> f64;
     fn expiry(&self) -> DateTime<Utc>;
+    fn cost(&self) -> f64;
     fn value_if_executed(&self, underlying_value: f64) -> f64;
 }
 
@@ -60,6 +71,9 @@ impl FinancialOption for Call {
     }
     fn expiry(&self) -> DateTime<Utc> {
         self.expiry
+    }
+    fn cost(&self) -> f64 {
+        self.cost
     }
     fn value_if_executed(&self, underlying_value: f64) -> f64 {
         underlying_value - self.strike()
@@ -73,6 +87,9 @@ impl FinancialOption for Put {
     fn expiry(&self) -> DateTime<Utc> {
         self.expiry
     }
+    fn cost(&self) -> f64 {
+        self.cost
+    }
     fn value_if_executed(&self, underlying_value: f64) -> f64 {
         self.strike() - underlying_value
     }
@@ -81,10 +98,11 @@ impl FinancialOption for Put {
 fn local_fmt<T: FinancialOption>(t: &T, prefix: &str, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(
         f,
-        "{}[strike={}, expiry={}]",
+        "{}[strike={}, expiry={}, cost={}]",
         prefix,
         t.strike(),
         t.expiry(),
+        t.cost(),
     )
 }
 
@@ -96,6 +114,6 @@ impl fmt::Display for Call {
 
 impl fmt::Display for Put {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        local_fmt(self, "Call", f)
+        local_fmt(self, "Put", f)
     }
 }
