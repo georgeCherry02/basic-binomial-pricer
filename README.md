@@ -15,4 +15,4 @@ library under the name "pricer". To do so you will need to:
 2. Install maturin for ease of use, `pip install maturin`
 3. Run `maturin build` or `maturin develop` to access it locally in this
 environment
-4. See test scripts for usage
+4. See test scripts and jupyter notebooks for usage
