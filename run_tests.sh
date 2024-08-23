@@ -1,2 +1,1 @@
-maturin develop
-pytest python_tests/*.py
+maturin develop && pytest
