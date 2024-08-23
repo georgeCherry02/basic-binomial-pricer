@@ -6,7 +6,7 @@ use chrono::DateTime;
 
 use std::fmt;
 
-#[pyclass]
+#[pyclass(frozen)]
 pub struct Call {
     strike: f64,
     expiry: DateTime<Utc>,

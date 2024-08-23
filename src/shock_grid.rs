@@ -1,6 +1,11 @@
-use pyo3::prelude::*;
+use crate::option::Call;
+use crate::BlackScholes;
 
-use itertools::{Itertools, Product};
+use pyo3::prelude::*;
+use pyo3::types::PyList;
+
+use chrono::Utc;
+use itertools::Itertools;
 
 #[pyclass(frozen)]
 pub struct ShockPoint {
@@ -11,20 +16,43 @@ pub struct ShockPoint {
 #[pyclass(frozen)]
 pub struct ShockGrid {
     shocks: Vec<ShockPoint>,
-    dimensions: (u32, u32),
+    dimensions: (usize, usize),
+}
+
+#[pymethods]
+impl ShockGrid {
+    fn value_with_black_scholes(&self, py_call: Bound<Call>, risk_free_rate: f64) -> Vec<Vec<f64>> {
+        let call: &Call = py_call.get();
+        let now = Utc::now();
+        let valuations = self.shocks.iter().map(|shock_point| {
+            call.value_black_scholes(
+                now,
+                shock_point.volatility,
+                shock_point.price,
+                risk_free_rate,
+            )
+            .unwrap_or_default()
+        });
+        let (n_price, n_vol) = self.dimensions;
+        let mut out = vec![Vec::with_capacity(n_price); n_vol];
+        for (i, valuation) in valuations.enumerate() {
+            out[i % n_vol].push(valuation);
+        }
+        out
+    }
 }
 
 #[pyclass(frozen)]
 pub struct ShockLimits {
     up: f64,
     down: f64,
-    resolution: u32,
+    resolution: usize,
 }
 
 #[pymethods]
 impl ShockLimits {
     #[new]
-    pub fn new(up: f64, down: f64, resolution: u32) -> Self {
+    pub fn new(up: f64, down: f64, resolution: usize) -> Self {
         ShockLimits {
             up,
             down,
@@ -38,6 +66,15 @@ fn get_step_size(shocked_element: f64, shock_limits: &ShockLimits) -> f64 {
     total_distance / (shock_limits.resolution as f64)
 }
 
+fn generate_shock_iter(
+    shocked_element: f64,
+    shock_limits: &ShockLimits,
+) -> impl Iterator<Item = f64> {
+    let step_size = get_step_size(shocked_element, shock_limits);
+    let begin = shocked_element - shocked_element * shock_limits.down;
+    (0..shock_limits.resolution).map(move |step| begin + ((step as f64) * step_size))
+}
+
 #[pyfunction]
 pub fn generate_shock_grid(
     price: f64,
@@ -47,12 +84,8 @@ pub fn generate_shock_grid(
 ) -> ShockGrid {
     let psl: &ShockLimits = price_shock_limits.get();
     let vsl: &ShockLimits = volatility_shock_limits.get();
-    let price_step = get_step_size(price, psl);
-    let vol_step = get_step_size(volatility, vsl);
-    let price_begin = price * psl.down;
-    let vol_begin = volatility * vsl.down;
-    let prices = (0..psl.resolution).map(|s| price_begin + ((s as f64) * price_step));
-    let vols = (0..vsl.resolution).map(|s| vol_begin + ((s as f64) * vol_step));
+    let prices = generate_shock_iter(price, psl);
+    let vols = generate_shock_iter(volatility, vsl).collect::<Vec<f64>>();
     let shocks = prices
         .cartesian_product(vols)
         .map(|(price, volatility)| ShockPoint { price, volatility })
