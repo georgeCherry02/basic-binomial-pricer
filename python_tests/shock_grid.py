@@ -19,6 +19,20 @@ def test_shockgrid_generation():
     shock_grid = generate_shock_grid_py()
     assert True
 
+def test_shockgrid_prices():
+    shock_grid = generate_shock_grid_py()
+    prices = shock_grid.prices()
+    assert len(prices) == 100
+    assert is_close(prices[0], (40 * 0.7), 1)
+    assert is_close(prices[99], (40 * 1.3), 1)
+
+def test_shockgrid_volatilities():
+    shock_grid = generate_shock_grid_py()
+    vols = shock_grid.volatilities()
+    assert len(vols) == 100
+    assert is_close(vols[0], (0.4 * 0.5), 0.01)
+    assert is_close(vols[99], (0.4 * 1.5), 0.01)
+
 def test_shockgrid_pricing():
     call = example_call()
     risk_free_rate = 0.04

@@ -20,6 +20,19 @@ pub struct ShockGrid {
 
 #[pymethods]
 impl ShockGrid {
+    fn prices(&self) -> Vec<f64> {
+        (0..self.dimensions.1)
+            .map(|i| i * self.dimensions.0)
+            .map(|i| self.shocks[i].price)
+            .collect()
+    }
+    fn volatilities(&self) -> Vec<f64> {
+        self.shocks
+            .iter()
+            .map(|sp| sp.volatility)
+            .take(self.dimensions.0)
+            .collect()
+    }
     fn value_with_black_scholes(&self, py_call: Bound<Call>, risk_free_rate: f64) -> Vec<Vec<f64>> {
         let call: &Call = py_call.get();
         let now = Utc::now();
@@ -89,6 +102,6 @@ pub fn generate_shock_grid(
         .cartesian_product(vols)
         .map(|(price, volatility)| ShockPoint { price, volatility })
         .collect();
-    let dimensions = (psl.resolution, vsl.resolution);
+    let dimensions = (vsl.resolution, psl.resolution);
     ShockGrid { shocks, dimensions }
 }
