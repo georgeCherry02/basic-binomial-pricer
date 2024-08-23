@@ -1,6 +1,7 @@
 mod black_scholes;
 pub mod option;
 pub mod result;
+pub mod shock_grid;
 mod utils;
 
 use pyo3::prelude::*;
@@ -11,6 +12,7 @@ pub use black_scholes::BlackScholes;
 use option::{Call, Put};
 
 use log::debug;
+use shock_grid::{generate_shock_grid, ShockGrid, ShockLimits};
 
 #[pyfunction]
 pub fn price_black_scholes(
@@ -35,5 +37,9 @@ fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(price_black_scholes, m)?)?;
     m.add_class::<Put>()?;
     m.add_class::<Call>()?;
+
+    m.add_class::<ShockGrid>()?;
+    m.add_class::<ShockLimits>()?;
+    m.add_function(wrap_pyfunction!(generate_shock_grid, m)?)?;
     Ok(())
 }
