@@ -1,6 +1,7 @@
 mod black_scholes;
 pub mod option;
 pub mod result;
+mod shock;
 pub mod shock_grid;
 mod utils;
 
