@@ -9,22 +9,36 @@ from pricer import Call, ShockLimits, generate_shock_grid
 
 app = Dash()
 
-app.layout = html.Div(
-    [
-        html.H1(children="Black-Scholes Calculator", style={"textAlign": "center"}),
-        html.Div(
-            [
-                dcc.Slider(id="strike", min=20.0, max=100.0, value=50.0),
-                dcc.Slider(id="cost", min=0.0, max=20.0, value=5.0),
-                dcc.DatePickerSingle(
-                    id="expiry",
-                    min_date_allowed=date.today(),
-                    date=date.today() + relativedelta(months=3),
-                ),
-            ]
-        ),
-        dcc.Graph(id="graph-content"),
-    ]
+app.layout = (
+    html.Div(
+        children=[
+            html.Div(
+                children=[
+                    html.H1(
+                        children="Black-Scholes Calculator",
+                        style={"textAlign": "center"},
+                    ),
+                    html.Div(
+                        children=[
+                            dcc.Slider(id="strike", min=20.0, max=100.0, value=50.0),
+                            dcc.Slider(id="cost", min=0.0, max=20.0, value=5.0),
+                            dcc.DatePickerSingle(
+                                id="expiry",
+                                min_date_allowed=date.today(),
+                                date=date.today() + relativedelta(months=3),
+                            ),
+                        ],
+                        style={"flex-grow": "1"},
+                    ),
+                ],
+                style={"display": "flex", "flex-direction": "column"},
+            ),
+            html.Div(
+                children=[dcc.Graph(id="graph-content")], style={"flex-grow": "1"}
+            ),
+        ],
+        style={"display": "flex", "flex-direction": "row"},
+    ),
 )
 
 
@@ -69,7 +83,7 @@ def update_off_strike(strike, cost, expiry):
             )
         ]
     )
-    fig.update_layout(scene_camera=camera, title="Option Plot", width=700, height=700)
+    fig.update_layout(scene_camera=camera, title="Option Plot", width=1100, height=600)
     fig.update_scenes(
         xaxis_title_text="Price",
         yaxis_title_text="Volatility",
