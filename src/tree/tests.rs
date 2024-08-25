@@ -20,7 +20,7 @@ fn two_year_basic_put() {
     let end_date = begin_date
         .with_year(begin_date.year() + number_of_years)
         .unwrap();
-    let put = get_put(strike, volatility, end_date);
+    let put = get_put(strike, end_date, 0.0);
     let num_steps = number_of_years;
     let risk_free_rate = 0.05;
     #[allow(unused_must_use)]
@@ -50,7 +50,7 @@ fn two_year_basic_call() {
     let end_date = begin_date
         .with_year(begin_date.year() + number_of_years)
         .unwrap();
-    let call = get_call(strike, volatility, end_date);
+    let call = get_call(strike, end_date, 0.0);
     let num_steps = number_of_years;
     let risk_free_rate = 0.05;
     #[allow(unused_must_use)]

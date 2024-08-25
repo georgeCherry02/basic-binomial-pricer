@@ -17,7 +17,7 @@ def test_washington_uni():
 
     call = Call(strike, expiry, cost)
     value = price_black_scholes(call, volatility, underlying_price, apr)
-    assert is_close(value, 2.0557, 0.0001), "Valued 4 month call correctly"
+    assert is_close(value, 2.0557, 0.0001), f"Valued 4 month call correctly, value={value}, exp=2.055"
 
 
 def __main__():

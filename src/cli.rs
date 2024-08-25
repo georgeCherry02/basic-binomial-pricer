@@ -52,17 +52,17 @@ fn get_expiry_datetime(expiry_nd: NaiveDate) -> PricerResult<DateTime<Utc>> {
     Ok(expiry_dt)
 }
 
-fn construct_option(args: &Cli, expiry: DateTime<Utc>) -> PricerResult<Box<dyn BlackScholes>> {
+fn construct_option(args: &Cli, expiry: DateTime<Utc>, cost: f64) -> PricerResult<Box<dyn BlackScholes>> {
     match args.option_type {
-        OptionType::CALL => Ok(Box::new(get_call(args.strike_price, expiry))),
-        OptionType::PUT => Ok(Box::new(get_put(args.strike_price, expiry))),
+        OptionType::CALL => Ok(Box::new(get_call(args.strike_price, expiry, cost))),
+        OptionType::PUT => Ok(Box::new(get_put(args.strike_price, expiry, cost))),
     }
 }
 
 fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
     let naive_date = args.expiry;
     let expiry = get_expiry_datetime(naive_date)?;
-    let option = construct_option(&args, expiry)?;
+    let option = construct_option(&args, expiry, 0.0)?;
     Ok(ValidatedInterface {
         option,
         volatility: args.volatility,

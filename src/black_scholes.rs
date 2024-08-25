@@ -153,6 +153,7 @@ fn half_year_black_scholes_put() {
             .map(|value| {
                 assert!(value > 1.0934);
                 assert!(value < 1.0935);
+                assert!(false);
             });
     }
 }

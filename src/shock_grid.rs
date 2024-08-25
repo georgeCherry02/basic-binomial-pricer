@@ -42,6 +42,7 @@ impl ShockGrid {
                 shock_point.volatility,
                 shock_point.price,
                 risk_free_rate,
+                vec![],
             )
             .unwrap_or_default()
         });

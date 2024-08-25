@@ -1,4 +1,5 @@
 mod black_scholes;
+mod black_scholes_new;
 pub mod option;
 pub mod result;
 mod shock;
@@ -9,7 +10,7 @@ use pyo3::prelude::*;
 
 use chrono::prelude::Utc;
 
-pub use black_scholes::BlackScholes;
+pub use black_scholes_new::BlackScholes;
 use option::{Call, Put};
 
 use log::debug;
@@ -23,7 +24,7 @@ pub fn price_black_scholes(
     apr: f64,
 ) -> PyResult<f64> {
     let call = py_call.borrow();
-    call.value_black_scholes(Utc::now(), volatility, underlying_price, apr)
+    call.value_black_scholes(Utc::now(), volatility, underlying_price, apr, vec![])
         .map_err(|e| e.into())
         .map(|r| {
             debug!("Valued call at {}", r);
