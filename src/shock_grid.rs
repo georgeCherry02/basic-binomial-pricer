@@ -39,8 +39,8 @@ impl ShockGrid {
         let valuations = self.shocks.iter().map(|shock_point| {
             call.value_black_scholes(
                 now,
-                shock_point.volatility,
                 shock_point.price,
+                shock_point.volatility,
                 risk_free_rate,
                 vec![],
             )

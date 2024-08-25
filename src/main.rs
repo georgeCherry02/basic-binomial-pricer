@@ -3,6 +3,7 @@ mod cli;
 mod option;
 mod result;
 mod risk_free_model;
+mod shock;
 mod tree;
 mod utils;
 
