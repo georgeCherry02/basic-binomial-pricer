@@ -1,5 +1,7 @@
 mod black_scholes;
+mod black_scholes_greeks;
 mod cli;
+mod greeks;
 mod option;
 mod result;
 mod risk_free_model;

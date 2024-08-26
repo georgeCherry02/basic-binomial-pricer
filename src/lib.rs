@@ -1,8 +1,11 @@
 pub mod option;
 pub mod result;
-mod shock;
-mod black_scholes;
 pub mod shock_grid;
+
+mod black_scholes;
+mod black_scholes_greeks;
+mod greeks;
+mod shock;
 mod utils;
 
 use pyo3::prelude::*;
