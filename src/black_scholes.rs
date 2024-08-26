@@ -52,7 +52,19 @@ fn apply_shock(input: &mut BlackScholesInputs, shock: Shock) {
     };
 }
 
-fn apply_scenario(mut input: BlackScholesInputs, scenario: Scenario) -> BlackScholesInputs {
+fn apply_scenario(
+    delta_t: f64,
+    underlying_price: f64,
+    underlying_volatility: f64,
+    risk_free_rate: f64,
+    scenario: Scenario,
+) -> BlackScholesInputs {
+    let mut input = BlackScholesInputs {
+        delta_t,
+        underlying_price,
+        underlying_volatility,
+        risk_free_rate,
+    };
     for shock in scenario {
         apply_shock(&mut input, shock);
     }
@@ -78,13 +90,14 @@ impl BlackScholes for Call {
         risk_free_rate: f64,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs {
-            delta_t: get_duration_in_years(valuation_time, self.expiry()),
+        let delta_t = get_duration_in_years(valuation_time, self.expiry());
+        let shocked_inputs = apply_scenario(
+            delta_t,
             underlying_price,
             underlying_volatility,
             risk_free_rate,
-        };
-        let shocked_inputs = apply_scenario(inputs, scenario);
+            scenario,
+        );
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
         Normal::new(0.0, 1.0)
             .map_err(failed_to_create_gaussian_error)
@@ -107,13 +120,14 @@ impl BlackScholes for Put {
         risk_free_rate: f64,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs {
-            delta_t: get_duration_in_years(valuation_time, self.expiry()),
+        let delta_t = get_duration_in_years(valuation_time, self.expiry());
+        let shocked_inputs = apply_scenario(
+            delta_t,
             underlying_price,
             underlying_volatility,
             risk_free_rate,
-        };
-        let shocked_inputs = apply_scenario(inputs, scenario);
+            scenario,
+        );
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
         Normal::new(0.0, 1.0)
             .map_err(failed_to_create_gaussian_error)
