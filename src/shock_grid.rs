@@ -1,4 +1,6 @@
+use crate::black_scholes::RiskFactors;
 use crate::option::Call;
+use crate::shock::RelativeShockType;
 use crate::BlackScholes;
 
 use pyo3::prelude::*;
@@ -37,14 +39,10 @@ impl ShockGrid {
         let call: &Call = py_call.get();
         let now = Utc::now();
         let valuations = self.shocks.iter().map(|shock_point| {
-            call.value_black_scholes(
-                now,
-                shock_point.price,
-                shock_point.volatility,
-                risk_free_rate,
-                vec![],
-            )
-            .unwrap_or_default()
+            let risk_factors =
+                RiskFactors::new(shock_point.price, shock_point.volatility, risk_free_rate);
+            call.value_black_scholes(now, risk_factors, vec![])
+                .unwrap_or_default()
         });
         let (n_price, n_vol) = self.dimensions;
         let mut out = vec![Vec::with_capacity(n_price); n_vol];

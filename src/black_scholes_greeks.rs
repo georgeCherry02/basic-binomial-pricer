@@ -6,16 +6,16 @@ impl<T> FiniteDifferenceGreeks for T
 where
     T: BlackScholes,
 {
-    fn delta() -> PricerResult<f64> {
+    fn delta(&self) -> PricerResult<f64> {
         Err(make_not_implemented_error())
     }
-    fn rho() -> PricerResult<f64> {
+    fn rho(&self) -> PricerResult<f64> {
         Err(make_not_implemented_error())
     }
-    fn theta() -> PricerResult<f64> {
+    fn theta(&self) -> PricerResult<f64> {
         Err(make_not_implemented_error())
     }
-    fn vega() -> PricerResult<f64> {
+    fn vega(&self) -> PricerResult<f64> {
         Err(make_not_implemented_error())
     }
 }

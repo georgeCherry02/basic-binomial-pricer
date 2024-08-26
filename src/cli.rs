@@ -1,6 +1,6 @@
 use crate::Cli;
 
-use crate::black_scholes::BlackScholes;
+use crate::black_scholes::{BlackScholes, RiskFactors};
 use crate::option::{get_call, get_put};
 use crate::{PricerError, PricerResult};
 
@@ -33,9 +33,7 @@ impl FromStr for OptionType {
 
 struct ValidatedInterface {
     option: Box<dyn BlackScholes>,
-    volatility: f64,
-    underlying_price: f64,
-    annualised_rate: f64,
+    risk_factors: RiskFactors,
 }
 
 fn get_expiry_datetime(expiry_nd: NaiveDate) -> PricerResult<DateTime<Utc>> {
@@ -67,24 +65,19 @@ fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
     let naive_date = args.expiry;
     let expiry = get_expiry_datetime(naive_date)?;
     let option = construct_option(&args, expiry, 0.0)?;
+    let risk_factors = RiskFactors::new(args.underlying_price, args.volatility, args.apr);
     Ok(ValidatedInterface {
         option,
-        volatility: args.volatility,
-        underlying_price: args.underlying_price,
-        annualised_rate: args.apr,
+        risk_factors,
     })
 }
 
 pub fn price(args: Cli) -> PricerResult<()> {
     parse_cli(args)
         .and_then(|interface| {
-            interface.option.value_black_scholes(
-                Utc::now(),
-                interface.underlying_price,
-                interface.volatility,
-                interface.annualised_rate,
-                vec![],
-            )
+            interface
+                .option
+                .value_black_scholes(Utc::now(), interface.risk_factors, vec![])
         })
         .map(|price| {
             info!("Priced Black-Scholes at {}", price);

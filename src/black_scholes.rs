@@ -1,7 +1,7 @@
 #[cfg(test)]
 use crate::option::{get_call, get_put};
 use crate::option::{Call, FinancialOption, Put};
-use crate::result::{PricerError, PricerResult};
+use crate::result::{make_not_implemented_error, PricerError, PricerResult};
 use crate::shock::{
     FloatShock, InterestRateShock, PriceShock, Scenario, Shock, TimeShock, VolatilityShock,
 };
@@ -23,13 +23,31 @@ fn failed_to_create_gaussian_error(_: StatsError) -> PricerError {
     }
 }
 
+pub struct RiskFactors {
+    underlying_price: f64,
+    underlying_volatility: f64,
+    risk_free_rate: f64,
+}
+
+impl RiskFactors {
+    pub fn new(
+        underlying_price: f64,
+        underlying_volatility: f64,
+        risk_free_rate: f64,
+    ) -> RiskFactors {
+        RiskFactors {
+            underlying_price,
+            underlying_volatility,
+            risk_free_rate,
+        }
+    }
+}
+
 pub trait BlackScholes: FinancialOption {
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
-        underlying_price: f64,
-        underlying_volatility: f64,
-        risk_free_rate: f64,
+        risk_factors: RiskFactors,
         shock_scenarios: Scenario,
     ) -> PricerResult<f64>;
 }
@@ -85,17 +103,15 @@ impl BlackScholes for Call {
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
-        underlying_price: f64,
-        underlying_volatility: f64,
-        risk_free_rate: f64,
+        risk_factors: RiskFactors,
         scenario: Scenario,
     ) -> PricerResult<f64> {
         let delta_t = get_duration_in_years(valuation_time, self.expiry());
         let shocked_inputs = apply_scenario(
             delta_t,
-            underlying_price,
-            underlying_volatility,
-            risk_free_rate,
+            risk_factors.underlying_price,
+            risk_factors.underlying_volatility,
+            risk_factors.risk_free_rate,
             scenario,
         );
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
@@ -115,17 +131,15 @@ impl BlackScholes for Put {
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
-        underlying_price: f64,
-        underlying_volatility: f64,
-        risk_free_rate: f64,
+        risk_factors: RiskFactors,
         scenario: Scenario,
     ) -> PricerResult<f64> {
         let delta_t = get_duration_in_years(valuation_time, self.expiry());
         let shocked_inputs = apply_scenario(
             delta_t,
-            underlying_price,
-            underlying_volatility,
-            risk_free_rate,
+            risk_factors.underlying_price,
+            risk_factors.underlying_volatility,
+            risk_factors.risk_free_rate,
             scenario,
         );
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
@@ -151,19 +165,14 @@ fn half_year_black_scholes_put() {
     let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
     let put = get_put(strike, end_date, cost);
     let rfr = 0.05;
+    let risk_factors = RiskFactors::new(underlying_price, implied_volatility, rfr);
     #[allow(unused_must_use)]
     {
-        put.value_black_scholes(
-            begin_date,
-            underlying_price,
-            implied_volatility,
-            rfr,
-            vec![],
-        )
-        .map(|value| {
-            assert!(value > 1.0934);
-            assert!(value < 1.0935);
-        });
+        put.value_black_scholes(begin_date, risk_factors, vec![])
+            .map(|value| {
+                assert!(value > 1.0934);
+                assert!(value < 1.0935);
+            });
     }
 }
 
@@ -177,18 +186,13 @@ fn half_year_black_scholes_call() {
     let end_date = Utc.timestamp_millis_opt(1704697100000).unwrap();
     let call = get_call(strike, end_date, cost);
     let rfr = 0.05;
+    let risk_factors = RiskFactors::new(underlying_price, implied_volatility, rfr);
     #[allow(unused_must_use)]
     {
-        call.value_black_scholes(
-            begin_date,
-            underlying_price,
-            implied_volatility,
-            rfr,
-            vec![],
-        )
-        .map(|value| {
-            assert!(value > 4.0817);
-            assert!(value < 4.0818);
-        });
+        call.value_black_scholes(begin_date, risk_factors, vec![])
+            .map(|value| {
+                assert!(value > 4.0817);
+                assert!(value < 4.0818);
+            });
     }
 }

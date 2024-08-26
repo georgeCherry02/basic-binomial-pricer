@@ -8,6 +8,7 @@ mod greeks;
 mod shock;
 mod utils;
 
+use black_scholes::RiskFactors;
 use pyo3::prelude::*;
 
 use chrono::prelude::Utc;
@@ -26,7 +27,8 @@ pub fn price_black_scholes(
     apr: f64,
 ) -> PyResult<f64> {
     let call = py_call.borrow();
-    call.value_black_scholes(Utc::now(), underlying_price, volatility, apr, vec![])
+    let risk_factors = RiskFactors::new(underlying_price, volatility, apr);
+    call.value_black_scholes(Utc::now(), risk_factors, vec![])
         .map_err(|e| e.into())
         .map(|r| {
             debug!("Valued call at {}", r);
