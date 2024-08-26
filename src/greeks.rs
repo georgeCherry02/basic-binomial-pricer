@@ -1,6 +1,6 @@
 use crate::result::PricerResult;
 
-pub trait Greeks {
+pub trait FiniteDifferenceGreeks {
     fn delta() -> PricerResult<f64>;
     fn rho() -> PricerResult<f64>;
     fn vega() -> PricerResult<f64>;

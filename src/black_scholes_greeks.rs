@@ -1,8 +1,8 @@
 use crate::black_scholes::BlackScholes;
-use crate::greeks::Greeks;
+use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::{make_not_implemented_error, PricerResult};
 
-impl<T> Greeks for T
+impl<T> FiniteDifferenceGreeks for T
 where
     T: BlackScholes,
 {
