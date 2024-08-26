@@ -1,21 +1,61 @@
-use crate::black_scholes::BlackScholes;
+use crate::black_scholes::{BlackScholes, RiskFactors};
 use crate::greeks::FiniteDifferenceGreeks;
-use crate::result::{make_not_implemented_error, PricerResult};
+use crate::result::{PricerError, PricerResult};
+use crate::shock::{interest_rate_shock, price_shock, time_shock, volatility_shock};
+use crate::shock::{
+    AbsoluteShock, AbsoluteTimeShock, RelativeShock, Scenario, Shock, ShockDirection, ShockSize,
+    TimeShockSize,
+};
+
+use chrono::{DateTime, Duration, Utc};
+
+static DELTA_SHOCK: Shock = price_shock(
+    String::new(),
+    ShockSize::AbsoluteShock(AbsoluteShock::new(1.0, ShockDirection::Up)),
+);
+static RHO_SHOCK: Shock = interest_rate_shock(
+    String::new(),
+    ShockSize::AbsoluteShock(AbsoluteShock::new(1.0, ShockDirection::Up)),
+);
+static VEGA_SHOCK: Shock = volatility_shock(
+    String::new(),
+    ShockSize::RelativeShock(RelativeShock::percentage(0.01, ShockDirection::Up)),
+);
+
+fn bump_and_reprice<T: BlackScholes>(
+    option: &T,
+    valuation_time: DateTime<Utc>,
+    risk_factors: RiskFactors,
+    scenario: Scenario,
+) -> PricerResult<f64> {
+    let base = option
+        .value_black_scholes(valuation_time, risk_factors.clone(), vec![])
+        .map_err(|e| PricerError::new(format!("Failed base pricing: {}", e), 2))?;
+    let shock = option
+        .value_black_scholes(valuation_time, risk_factors, scenario)
+        .map_err(|e| PricerError::new(format!("Failed shock pricing: {}", e), 3))?;
+    Ok(shock - base)
+}
 
 impl<T> FiniteDifferenceGreeks for T
 where
     T: BlackScholes,
 {
-    fn delta(&self) -> PricerResult<f64> {
-        Err(make_not_implemented_error())
+    fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+        bump_and_reprice(self, valuation_time, risk_factors, vec![&DELTA_SHOCK])
     }
-    fn rho(&self) -> PricerResult<f64> {
-        Err(make_not_implemented_error())
+    fn rho(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+        bump_and_reprice(self, valuation_time, risk_factors, vec![&RHO_SHOCK])
     }
-    fn theta(&self) -> PricerResult<f64> {
-        Err(make_not_implemented_error())
+    fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+        let day = Duration::days(1);
+        let theta: Shock = time_shock(
+            String::from("time-to-expiry"),
+            TimeShockSize::AbsoluteShock(AbsoluteTimeShock::new(day, ShockDirection::Up)),
+        );
+        bump_and_reprice(self, valuation_time, risk_factors, vec![&theta])
     }
-    fn vega(&self) -> PricerResult<f64> {
-        Err(make_not_implemented_error())
+    fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+        bump_and_reprice(self, valuation_time, risk_factors, vec![&VEGA_SHOCK])
     }
 }

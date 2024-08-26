@@ -23,6 +23,7 @@ fn failed_to_create_gaussian_error(_: StatsError) -> PricerError {
     }
 }
 
+#[derive(Clone)]
 pub struct RiskFactors {
     underlying_price: f64,
     underlying_volatility: f64,
@@ -59,7 +60,7 @@ struct BlackScholesInputs {
     risk_free_rate: f64,
 }
 
-fn apply_shock(input: &mut BlackScholesInputs, shock: Shock) {
+fn apply_shock(input: &mut BlackScholesInputs, shock: &Shock) {
     match shock {
         Shock::InterestRateShock(shock) => input.risk_free_rate = shock.apply(input.risk_free_rate),
         Shock::PriceShock(shock) => input.underlying_price = shock.apply(input.underlying_price),

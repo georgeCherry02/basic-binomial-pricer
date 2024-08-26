@@ -1,8 +1,11 @@
+use crate::black_scholes::RiskFactors;
 use crate::result::PricerResult;
 
+use chrono::{DateTime, Utc};
+
 pub trait FiniteDifferenceGreeks {
-    fn delta(&self) -> PricerResult<f64>;
-    fn rho(&self) -> PricerResult<f64>;
-    fn vega(&self) -> PricerResult<f64>;
-    fn theta(&self) -> PricerResult<f64>;
+    fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
+    fn rho(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
+    fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
+    fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
 }

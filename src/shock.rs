@@ -12,6 +12,12 @@ pub struct AbsoluteShock {
     direction: ShockDirection,
 }
 
+impl AbsoluteShock {
+    pub const fn new(size: f64, direction: ShockDirection) -> AbsoluteShock {
+        AbsoluteShock { size, direction }
+    }
+}
+
 impl FloatShock for AbsoluteShock {
     fn apply(&self, base: f64) -> f64 {
         match self.direction {
@@ -24,6 +30,12 @@ impl FloatShock for AbsoluteShock {
 pub struct AbsoluteTimeShock {
     size: chrono::Duration,
     direction: ShockDirection,
+}
+
+impl AbsoluteTimeShock {
+    pub fn new(size: chrono::Duration, direction: ShockDirection) -> AbsoluteTimeShock {
+        AbsoluteTimeShock { size, direction }
+    }
 }
 
 impl FloatShock for AbsoluteTimeShock {
@@ -48,6 +60,16 @@ pub struct RelativeShock {
     direction: ShockDirection,
 }
 
+impl RelativeShock {
+    pub const fn percentage(size: f64, direction: ShockDirection) -> RelativeShock {
+        RelativeShock {
+            size,
+            shock_type: RelativeShockType::Percentage,
+            direction,
+        }
+    }
+}
+
 impl FloatShock for RelativeShock {
     fn apply(&self, base: f64) -> f64 {
         let amount = match self.shock_type {
@@ -67,7 +89,7 @@ pub enum ShockSize {
 }
 
 pub enum TimeShockSize {
-    AbsoluteTimeShock(AbsoluteShock),
+    AbsoluteShock(AbsoluteTimeShock),
     RelativeShock(RelativeShock),
 }
 
@@ -83,7 +105,7 @@ impl FloatShock for ShockSize {
 impl FloatShock for TimeShockSize {
     fn apply(&self, base: f64) -> f64 {
         match self {
-            TimeShockSize::AbsoluteTimeShock(shock) => shock.apply(base),
+            TimeShockSize::AbsoluteShock(shock) => shock.apply(base),
             TimeShockSize::RelativeShock(shock) => shock.apply(base),
         }
     }
@@ -137,4 +159,29 @@ pub enum Shock {
     InterestRateShock(InterestRateShock),
 }
 
-pub type Scenario = Vec<Shock>;
+pub const fn price_shock(risk_factor_id: String, size: ShockSize) -> Shock {
+    Shock::PriceShock(PriceShock {
+        risk_factor_id,
+        size,
+    })
+}
+pub const fn interest_rate_shock(risk_factor_id: String, size: ShockSize) -> Shock {
+    Shock::InterestRateShock(InterestRateShock {
+        risk_factor_id,
+        size,
+    })
+}
+pub const fn time_shock(risk_factor_id: String, size: TimeShockSize) -> Shock {
+    Shock::TimeShock(TimeShock {
+        risk_factor_id,
+        size,
+    })
+}
+pub const fn volatility_shock(risk_factor_id: String, size: ShockSize) -> Shock {
+    Shock::VolatilityShock(VolatilityShock {
+        risk_factor_id,
+        size,
+    })
+}
+
+pub type Scenario<'a> = Vec<&'a Shock>;

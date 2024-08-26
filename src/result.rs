@@ -9,6 +9,12 @@ pub struct PricerError {
     pub code: u64,
 }
 
+impl PricerError {
+    pub fn new(message: String, code: u64) -> PricerError {
+        PricerError { message, code }
+    }
+}
+
 impl fmt::Display for PricerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Code: {}, Message: {}", self.code, self.message)
