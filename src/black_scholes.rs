@@ -1,10 +1,8 @@
 #[cfg(test)]
 use crate::option::{get_call, get_put};
 use crate::option::{Call, FinancialOption, Put};
-use crate::result::{make_not_implemented_error, PricerError, PricerResult};
-use crate::shock::{
-    FloatShock, InterestRateShock, PriceShock, Scenario, Shock, TimeShock, VolatilityShock,
-};
+use crate::result::{PricerError, PricerResult};
+use crate::shock::{FloatShock, Scenario, Shock};
 use crate::utils::date::get_duration_in_years;
 
 #[cfg(test)]
