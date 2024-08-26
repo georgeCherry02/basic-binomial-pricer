@@ -5,19 +5,20 @@ pub mod shock_grid;
 mod black_scholes;
 mod black_scholes_greeks;
 mod greeks;
+mod risk_factor;
 mod shock;
 mod utils;
 
-use black_scholes::RiskFactors;
 use pyo3::prelude::*;
 
 use chrono::prelude::Utc;
 
 pub use black_scholes::BlackScholes;
 use option::{Call, Put};
+use risk_factor::RiskFactors;
+use shock_grid::{generate_shock_grid, ShockGrid, ShockLimits};
 
 use log::debug;
-use shock_grid::{generate_shock_grid, ShockGrid, ShockLimits};
 
 #[pyfunction]
 pub fn price_black_scholes(

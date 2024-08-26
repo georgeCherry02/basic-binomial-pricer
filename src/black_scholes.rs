@@ -2,6 +2,7 @@
 use crate::option::{get_call, get_put};
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::{PricerError, PricerResult};
+use crate::risk_factor::RiskFactors;
 use crate::shock::{FloatShock, Scenario, Shock};
 use crate::utils::date::get_duration_in_years;
 
@@ -18,27 +19,6 @@ fn failed_to_create_gaussian_error(_: StatsError) -> PricerError {
         message: String::from(
             "Failed to construct Gaussian disrtribution for Black-Scholes pricing",
         ),
-    }
-}
-
-#[derive(Clone)]
-pub struct RiskFactors {
-    underlying_price: f64,
-    underlying_volatility: f64,
-    risk_free_rate: f64,
-}
-
-impl RiskFactors {
-    pub fn new(
-        underlying_price: f64,
-        underlying_volatility: f64,
-        risk_free_rate: f64,
-    ) -> RiskFactors {
-        RiskFactors {
-            underlying_price,
-            underlying_volatility,
-            risk_free_rate,
-        }
     }
 }
 

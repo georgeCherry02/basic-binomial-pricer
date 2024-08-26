@@ -1,6 +1,5 @@
-use crate::black_scholes::RiskFactors;
 use crate::option::Call;
-use crate::shock::RelativeShockType;
+use crate::risk_factor::RiskFactors;
 use crate::BlackScholes;
 
 use pyo3::prelude::*;

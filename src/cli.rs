@@ -1,8 +1,9 @@
 use crate::Cli;
 
-use crate::black_scholes::{BlackScholes, RiskFactors};
+use crate::black_scholes::BlackScholes;
 use crate::option::{get_call, get_put};
-use crate::{PricerError, PricerResult};
+use crate::result::{PricerError, PricerResult};
+use crate::risk_factor::RiskFactors;
 
 use chrono::prelude::Utc;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};

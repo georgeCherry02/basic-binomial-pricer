@@ -1,6 +1,7 @@
-use crate::black_scholes::{BlackScholes, RiskFactors};
+use crate::black_scholes::BlackScholes;
 use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::{PricerError, PricerResult};
+use crate::risk_factor::RiskFactors;
 use crate::shock::{interest_rate_shock, price_shock, time_shock, volatility_shock};
 use crate::shock::{
     AbsoluteShock, AbsoluteTimeShock, RelativeShock, Scenario, Shock, ShockDirection, ShockSize,

@@ -1,5 +1,5 @@
-use crate::black_scholes::RiskFactors;
 use crate::result::PricerResult;
+use crate::risk_factor::RiskFactors;
 
 use chrono::{DateTime, Utc};
 
