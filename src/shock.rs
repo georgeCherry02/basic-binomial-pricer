@@ -21,6 +21,22 @@ impl FloatShock for AbsoluteShock {
     }
 }
 
+pub struct AbsoluteTimeShock {
+    size: chrono::Duration,
+    direction: ShockDirection,
+}
+
+impl FloatShock for AbsoluteTimeShock {
+    fn apply(&self, base: f64) -> f64 {
+        const NUMBER_OF_SECONDS_IN_A_YEAR: f64 = 31536000.0;
+        let shock_in_years = self.size.num_seconds() as f64 / NUMBER_OF_SECONDS_IN_A_YEAR;
+        match self.direction {
+            ShockDirection::Up => base + shock_in_years,
+            ShockDirection::Down => base - shock_in_years,
+        }
+    }
+}
+
 pub enum RelativeShockType {
     Percentage,
     BasisPoint,
@@ -50,10 +66,26 @@ pub enum ShockSize {
     RelativeShock(RelativeShock),
 }
 
-fn apply_shock_size(base: f64, shock_size: &ShockSize) -> f64 {
-    match shock_size {
-        ShockSize::AbsoluteShock(shock) => shock.apply(base),
-        ShockSize::RelativeShock(shock) => shock.apply(base),
+pub enum TimeShockSize {
+    AbsoluteTimeShock(AbsoluteShock),
+    RelativeShock(RelativeShock),
+}
+
+impl FloatShock for ShockSize {
+    fn apply(&self, base: f64) -> f64 {
+        match self {
+            ShockSize::AbsoluteShock(shock) => shock.apply(base),
+            ShockSize::RelativeShock(shock) => shock.apply(base),
+        }
+    }
+}
+
+impl FloatShock for TimeShockSize {
+    fn apply(&self, base: f64) -> f64 {
+        match self {
+            TimeShockSize::AbsoluteTimeShock(shock) => shock.apply(base),
+            TimeShockSize::RelativeShock(shock) => shock.apply(base),
+        }
     }
 }
 
@@ -69,7 +101,7 @@ pub struct VolatilityShock {
 
 pub struct TimeShock {
     risk_factor_id: String,
-    size: ShockSize,
+    size: TimeShockSize,
 }
 
 pub struct InterestRateShock {
@@ -79,22 +111,22 @@ pub struct InterestRateShock {
 
 impl FloatShock for PriceShock {
     fn apply(&self, base: f64) -> f64 {
-        apply_shock_size(base, &self.size)
+        self.size.apply(base)
     }
 }
 impl FloatShock for VolatilityShock {
     fn apply(&self, base: f64) -> f64 {
-        apply_shock_size(base, &self.size)
+        self.size.apply(base)
     }
 }
 impl FloatShock for InterestRateShock {
     fn apply(&self, base: f64) -> f64 {
-        apply_shock_size(base, &self.size)
+        self.size.apply(base)
     }
 }
 impl FloatShock for TimeShock {
     fn apply(&self, base: f64) -> f64 {
-        apply_shock_size(base, &self.size)
+        self.size.apply(base)
     }
 }
 
