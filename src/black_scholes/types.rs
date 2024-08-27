@@ -9,6 +9,7 @@ pub struct BlackScholesInputs {
     pub underlying_price: f64,
     pub underlying_volatility: f64,
     pub risk_free_rate: f64,
+    pub annualised_dividend_rate: f64,
 }
 
 impl BlackScholesInputs {
@@ -23,6 +24,7 @@ impl BlackScholesInputs {
             underlying_price: risk_factors.underlying_price,
             underlying_volatility: risk_factors.underlying_volatility,
             risk_free_rate: risk_factors.risk_free_rate,
+            annualised_dividend_rate: risk_factors.annualised_dividend_rate,
         }
     }
     pub fn risk_free_adjustment(&self) -> f64 {
