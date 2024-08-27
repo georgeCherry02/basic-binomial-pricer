@@ -12,10 +12,7 @@ use chrono::{DateTime, Duration, Utc};
 static DELTA_SHOCK: Shock = price_shock(String::new(), absolute_shock(1.0, ShockDirection::Up));
 static RHO_SHOCK: Shock =
     interest_rate_shock(String::new(), absolute_shock(1.0, ShockDirection::Up));
-static VEGA_SHOCK: Shock = volatility_shock(
-    String::new(),
-    relative_percentage_shock(1.0, ShockDirection::Up),
-);
+static VEGA_SHOCK: Shock = volatility_shock(String::new(), absolute_shock(1.0, ShockDirection::Up));
 
 fn bump_and_reprice<T: BlackScholes>(
     option: &T,
@@ -49,6 +46,7 @@ where
         risk_factors: RiskFactors,
     ) -> PricerResult<f64> {
         bump_and_reprice(self, valuation_time, risk_factors, vec![&RHO_SHOCK])
+            .map(|value| value / 100.0)
     }
     fn theta_fd(
         &self,
