@@ -7,10 +7,11 @@ use crate::risk_factor::RiskFactors;
 
 use chrono::{DateTime, Utc};
 
-use statrs::distribution::{Continuous, ContinuousCDF, Normal};
-use statrs::StatsError;
+use statrs::distribution::{Continuous, ContinuousCDF};
 
 static DAYS_IN_YEAR: u32 = 365;
+
+// Source of equations: https://www.macroption.com/black-scholes-formula/
 
 pub trait BlackScholesGreeks: BlackScholes {
     fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
