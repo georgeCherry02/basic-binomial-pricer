@@ -47,9 +47,11 @@ impl BlackScholesGreeks for Call {
             -(inputs.underlying_price * inputs.volatility_for_delta_t()) / (2.0 * inputs.delta_t);
         let risk_free_adjustment =
             -(inputs.risk_free_rate * self.strike() * inputs.risk_free_adjustment());
-        gaussian().map(|gaussian| {
-            lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
-        })
+        gaussian()
+            .map(|gaussian| {
+                lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
+            })
+            .map(|value| value / DAYS_IN_YEAR as f64)
     }
     fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
         let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
@@ -91,9 +93,11 @@ impl BlackScholesGreeks for Put {
             -(inputs.underlying_price * inputs.volatility_for_delta_t()) / (2.0 * inputs.delta_t);
         let risk_free_adjustment =
             inputs.risk_free_rate * self.strike() * inputs.risk_free_adjustment();
-        gaussian().map(|gaussian| {
-            lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
-        })
+        gaussian()
+            .map(|gaussian| {
+                lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
+            })
+            .map(|value| value / DAYS_IN_YEAR as f64)
     }
     fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
         let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
