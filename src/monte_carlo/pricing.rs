@@ -32,7 +32,7 @@ fn gaussian() -> PricerResult<Normal> {
     Normal::new(0.0, 1.0).map_err(failed_to_create_gaussian_error)
 }
 
-fn monte_carlo_asset(
+pub fn generate_monte_carlo_paths(
     inputs: MonteCarloInputs,
     parameters: MonteCarloParams,
 ) -> PricerResult<Vec<Vec<f64>>> {
