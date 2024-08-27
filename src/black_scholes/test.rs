@@ -1,9 +1,11 @@
-use super::pricing::BlackScholes;
+use super::BlackScholes;
 use super::BlackScholesGreeks;
 use crate::greeks::FiniteDifferenceGreeks;
 use crate::option::{get_call, get_put, Call, Put};
+use crate::result::PricerResult;
 use crate::risk_factor::RiskFactors;
 use chrono::{DateTime, TimeZone, Utc};
+use statrs::assert_almost_eq;
 
 fn get_test_evaluation_period() -> (DateTime<Utc>, DateTime<Utc>) {
     (
@@ -71,15 +73,40 @@ fn is_close(lhs: f64, rhs: f64, tolerance: f64) -> bool {
 
 #[test]
 #[allow(unused_must_use)]
-fn black_scholes_finite_difference_delta_near_analytical_delta() {
+fn black_scholes_finite_difference_delta_near_analytical_delta() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_inputs_call();
-    let delta_finite_difference = call.delta_fd(valuation_time, risk_factors.clone());
-    assert!(delta_finite_difference.is_ok());
-    let delta_analytic = call.delta(valuation_time, risk_factors);
-    assert!(delta_analytic.is_ok());
-    assert!(is_close(
-        delta_finite_difference.unwrap(),
-        delta_analytic.unwrap(),
-        0.05,
-    ));
+    let delta_finite_difference = call.delta_fd(valuation_time, risk_factors.clone())?;
+    let delta_analytic = call.delta(valuation_time, risk_factors)?;
+    assert_almost_eq!(delta_finite_difference, delta_analytic, 0.05);
+    Ok(())
+}
+
+#[test]
+#[allow(unused_must_use)]
+fn black_scholes_finite_difference_vega_near_analytical_vega() -> PricerResult<()> {
+    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let delta_finite_difference = call.vega_fd(valuation_time, risk_factors.clone())?;
+    let delta_analytic = call.vega(valuation_time, risk_factors)?;
+    assert_almost_eq!(delta_finite_difference, delta_analytic, 0.05);
+    Ok(())
+}
+
+#[test]
+#[allow(unused_must_use)]
+fn black_scholes_finite_difference_rho_near_analytical_rho() -> PricerResult<()> {
+    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let delta_finite_difference = call.rho_fd(valuation_time, risk_factors.clone())?;
+    let delta_analytic = call.rho(valuation_time, risk_factors)?;
+    assert_almost_eq!(delta_finite_difference, delta_analytic, 0.05);
+    Ok(())
+}
+
+#[test]
+#[allow(unused_must_use)]
+fn black_scholes_finite_difference_theta_near_analytical_theta() -> PricerResult<()> {
+    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let delta_finite_difference = call.theta_fd(valuation_time, risk_factors.clone())?;
+    let delta_analytic = call.theta(valuation_time, risk_factors)?;
+    assert_almost_eq!(delta_finite_difference, delta_analytic, 0.05);
+    Ok(())
 }
