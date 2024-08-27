@@ -37,10 +37,7 @@ impl BlackScholesGreeks for Call {
         let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
         let (_, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| {
-            0.01 * self.strike()
-                * inputs.delta_t
-                * (-inputs.delta_t * inputs.risk_free_rate).exp()
-                * gaussian.cdf(d2)
+            0.01 * self.strike() * inputs.delta_t * inputs.risk_free_adjustment() * gaussian.cdf(d2)
         })
     }
     fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
@@ -48,9 +45,8 @@ impl BlackScholesGreeks for Call {
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         let lost_price_movement = -(inputs.underlying_price * inputs.underlying_volatility)
             / (2.0 * inputs.delta_t.sqrt());
-        let risk_free_adjustment = -(inputs.risk_free_rate
-            * self.strike()
-            * (-inputs.risk_free_rate * inputs.delta_t).exp());
+        let risk_free_adjustment =
+            -(inputs.risk_free_rate * self.strike() * inputs.risk_free_adjustment());
         gaussian().map(|gaussian| {
             lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
         })
@@ -81,9 +77,10 @@ impl BlackScholesGreeks for Put {
         let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
         let (_, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| {
-            -0.01 * self.strike()
+            -0.01
+                * self.strike()
                 * inputs.delta_t
-                * (-inputs.delta_t * inputs.risk_free_rate).exp()
+                * inputs.risk_free_adjustment()
                 * gaussian.cdf(-d2)
         })
     }
@@ -93,7 +90,7 @@ impl BlackScholesGreeks for Put {
         let lost_price_movement = -(inputs.underlying_price * inputs.underlying_volatility)
             / (2.0 * inputs.delta_t.sqrt());
         let risk_free_adjustment =
-            inputs.risk_free_rate * self.strike() * (-inputs.risk_free_rate * inputs.delta_t).exp();
+            inputs.risk_free_rate * self.strike() * inputs.risk_free_adjustment();
         gaussian().map(|gaussian| {
             lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
         })

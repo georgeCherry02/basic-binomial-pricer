@@ -25,4 +25,7 @@ impl BlackScholesInputs {
             risk_free_rate: risk_factors.risk_free_rate,
         }
     }
+    pub fn risk_free_adjustment(&self) -> f64 {
+        (-self.delta_t * self.risk_free_rate).exp()
+    }
 }
