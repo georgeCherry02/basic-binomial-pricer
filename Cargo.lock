@@ -486,6 +486,7 @@ dependencies = [
  "log",
  "pyo3",
  "pyo3-log",
+ "rand",
  "statrs",
  "test-log",
 ]
