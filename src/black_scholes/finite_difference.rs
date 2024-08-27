@@ -66,5 +66,6 @@ where
         risk_factors: RiskFactors,
     ) -> PricerResult<f64> {
         bump_and_reprice(self, valuation_time, risk_factors, vec![&VEGA_SHOCK])
+            .map(|value| value / 100.0)
     }
 }
