@@ -49,7 +49,7 @@ impl BlackScholes for Call {
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
         gaussian()
             .map(|gaussian| {
-                shocked_inputs.underlying_price * gaussian.cdf(d1)
+                shocked_inputs.dividend_adjusted_price() * gaussian.cdf(d1)
                     - self.strike() * shocked_inputs.risk_free_adjustment() * gaussian.cdf(d2)
             })
             .map(|valuation| valuation - self.cost())
@@ -69,7 +69,7 @@ impl BlackScholes for Put {
         gaussian()
             .map(|gaussian| {
                 self.strike() * shocked_inputs.risk_free_adjustment() * gaussian.cdf(-d2)
-                    - shocked_inputs.underlying_price * gaussian.cdf(-d1)
+                    - shocked_inputs.dividend_adjusted_price() * gaussian.cdf(-d1)
             })
             .map(|valuation| valuation - self.cost())
     }
