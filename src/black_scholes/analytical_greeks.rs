@@ -47,9 +47,13 @@ impl BlackScholesGreeks for Call {
             -(inputs.underlying_price * inputs.volatility_for_delta_t()) / (2.0 * inputs.delta_t);
         let risk_free_adjustment =
             -(inputs.risk_free_rate * self.strike() * inputs.risk_free_adjustment());
+        let dividend_adjustment =
+            inputs.annualised_dividend_rate * inputs.dividend_adjusted_price();
         gaussian()
             .map(|gaussian| {
-                lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
+                lost_price_movement * gaussian.pdf(d1)
+                    + risk_free_adjustment * gaussian.cdf(d2)
+                    + dividend_adjustment * gaussian.cdf(d1)
             })
             .map(|value| value / DAYS_IN_YEAR as f64)
     }
@@ -93,9 +97,13 @@ impl BlackScholesGreeks for Put {
             -(inputs.underlying_price * inputs.volatility_for_delta_t()) / (2.0 * inputs.delta_t);
         let risk_free_adjustment =
             inputs.risk_free_rate * self.strike() * inputs.risk_free_adjustment();
+        let dividend_adjustment =
+            -inputs.annualised_dividend_rate * inputs.dividend_adjusted_price();
         gaussian()
             .map(|gaussian| {
-                lost_price_movement * gaussian.pdf(d1) + risk_free_adjustment * gaussian.cdf(d2)
+                lost_price_movement * gaussian.pdf(d1)
+                    + risk_free_adjustment * gaussian.cdf(d2)
+                    + dividend_adjustment * gaussian.cdf(-d1)
             })
             .map(|value| value / DAYS_IN_YEAR as f64)
     }
