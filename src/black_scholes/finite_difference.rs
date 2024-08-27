@@ -56,7 +56,7 @@ where
         let day = Duration::days(1);
         let theta: Shock = time_shock(
             String::from("time-to-expiry"),
-            absolute_time_shock(day, ShockDirection::Up),
+            absolute_time_shock(day, ShockDirection::Down),
         );
         bump_and_reprice(self, valuation_time, risk_factors, vec![&theta])
     }
