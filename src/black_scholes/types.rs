@@ -28,9 +28,12 @@ impl BlackScholesInputs {
         }
     }
     pub fn risk_free_adjustment(&self) -> f64 {
-        (-self.delta_t * self.risk_free_rate).exp()
+        (-self.risk_free_rate * self.delta_t).exp()
     }
     pub fn volatility_for_delta_t(&self) -> f64 {
         self.underlying_volatility * self.delta_t.sqrt()
+    }
+    pub fn dividend_adjusted_price(&self) -> f64 {
+        self.underlying_price * (-self.annualised_dividend_rate * self.delta_t).exp()
     }
 }
