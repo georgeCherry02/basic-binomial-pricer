@@ -3,6 +3,7 @@ pub struct RiskFactors {
     pub underlying_price: f64,
     pub underlying_volatility: f64,
     pub risk_free_rate: f64,
+    pub annualised_dividend_rate: f64,
 }
 
 impl RiskFactors {
@@ -15,6 +16,7 @@ impl RiskFactors {
             underlying_price,
             underlying_volatility,
             risk_free_rate,
+            annualised_dividend_rate: 0.0,
         }
     }
 }

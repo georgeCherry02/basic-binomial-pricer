@@ -18,11 +18,7 @@ fn get_test_risk_factors() -> RiskFactors {
     let underlying_price = 42f64;
     let underlying_volatility = 0.2f64;
     let risk_free_rate = 0.05f64;
-    RiskFactors {
-        underlying_price,
-        underlying_volatility,
-        risk_free_rate,
-    }
+    RiskFactors::new(underlying_price, underlying_volatility, risk_free_rate)
 }
 
 fn get_test_inputs_call() -> (Call, DateTime<Utc>, RiskFactors) {
