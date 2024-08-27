@@ -33,7 +33,10 @@ impl BlackScholesInputs {
     pub fn volatility_for_delta_t(&self) -> f64 {
         self.underlying_volatility * self.delta_t.sqrt()
     }
+    pub fn dividend_adjustment(&self) -> f64 {
+        (-self.annualised_dividend_rate * self.delta_t).exp()
+    }
     pub fn dividend_adjusted_price(&self) -> f64 {
-        self.underlying_price * (-self.annualised_dividend_rate * self.delta_t).exp()
+        self.underlying_price * self.dividend_adjustment()
     }
 }
