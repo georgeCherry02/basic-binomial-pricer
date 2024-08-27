@@ -2,8 +2,9 @@ use super::FloatShock;
 use super::ShockDirection;
 
 pub enum RelativeShockType {
-    Percentage,
     BasisPoint,
+    Decimal,
+    Percentage,
 }
 
 pub struct RelativeShock {
@@ -27,14 +28,23 @@ impl RelativeShock {
             direction,
         }
     }
+    pub const fn decimal(size: f64, direction: ShockDirection) -> RelativeShock {
+        RelativeShock {
+            size,
+            shock_type: RelativeShockType::Decimal,
+            direction,
+        }
+    }
 }
 
 impl FloatShock for RelativeShock {
     fn apply(&self, base: f64) -> f64 {
-        let amount = match self.shock_type {
-            RelativeShockType::Percentage => base * self.size,
-            RelativeShockType::BasisPoint => base * self.size * 0.0001,
+        let scaling = match self.shock_type {
+            RelativeShockType::BasisPoint => 0.0001,
+            RelativeShockType::Decimal => 1.0,
+            RelativeShockType::Percentage => 0.01,
         };
+        let amount = base * self.size * scaling;
         match self.direction {
             ShockDirection::Up => base + amount,
             ShockDirection::Down => base - amount,

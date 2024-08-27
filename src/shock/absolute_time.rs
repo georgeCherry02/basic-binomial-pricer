@@ -9,7 +9,7 @@ pub struct AbsoluteTimeShock {
 }
 
 impl AbsoluteTimeShock {
-    pub fn new(size: chrono::Duration, direction: ShockDirection) -> AbsoluteTimeShock {
+    pub const fn new(size: chrono::Duration, direction: ShockDirection) -> AbsoluteTimeShock {
         AbsoluteTimeShock { size, direction }
     }
 }

@@ -2,23 +2,18 @@ use crate::black_scholes::BlackScholes;
 use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::{PricerError, PricerResult};
 use crate::risk_factor::RiskFactors;
+use crate::shock::{absolute_shock, absolute_time_shock, relative_percentage_shock};
 use crate::shock::{interest_rate_shock, price_shock, time_shock, volatility_shock};
-use crate::shock::{AbsoluteShock, AbsoluteTimeShock, RelativeShock};
-use crate::shock::{Scenario, Shock, ShockDirection, ShockSize, TimeShockSize};
+use crate::shock::{Scenario, Shock, ShockDirection};
 
 use chrono::{DateTime, Duration, Utc};
 
-static DELTA_SHOCK: Shock = price_shock(
-    String::new(),
-    ShockSize::AbsoluteShock(AbsoluteShock::new(1.0, ShockDirection::Up)),
-);
-static RHO_SHOCK: Shock = interest_rate_shock(
-    String::new(),
-    ShockSize::AbsoluteShock(AbsoluteShock::new(1.0, ShockDirection::Up)),
-);
+static DELTA_SHOCK: Shock = price_shock(String::new(), absolute_shock(1.0, ShockDirection::Up));
+static RHO_SHOCK: Shock =
+    interest_rate_shock(String::new(), absolute_shock(1.0, ShockDirection::Up));
 static VEGA_SHOCK: Shock = volatility_shock(
     String::new(),
-    ShockSize::RelativeShock(RelativeShock::percentage(0.01, ShockDirection::Up)),
+    relative_percentage_shock(1.0, ShockDirection::Up),
 );
 
 fn bump_and_reprice<T: BlackScholes>(
@@ -50,7 +45,7 @@ where
         let day = Duration::days(1);
         let theta: Shock = time_shock(
             String::from("time-to-expiry"),
-            TimeShockSize::AbsoluteShock(AbsoluteTimeShock::new(day, ShockDirection::Up)),
+            absolute_time_shock(day, ShockDirection::Up),
         );
         bump_and_reprice(self, valuation_time, risk_factors, vec![&theta])
     }
