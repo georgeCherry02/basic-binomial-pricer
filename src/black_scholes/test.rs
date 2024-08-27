@@ -1,4 +1,6 @@
 use super::pricing::BlackScholes;
+use super::BlackScholesGreeks;
+use crate::greeks::FiniteDifferenceGreeks;
 use crate::option::{get_call, get_put, Call, Put};
 use crate::risk_factor::RiskFactors;
 use chrono::{DateTime, TimeZone, Utc};
@@ -40,27 +42,44 @@ fn get_test_inputs_put() -> (Put, DateTime<Utc>, RiskFactors) {
 }
 
 #[test]
+#[allow(unused_must_use)]
 fn half_year_black_scholes_put() {
     let (put, begin_date, risk_factors) = get_test_inputs_put();
-    #[allow(unused_must_use)]
-    {
-        put.value_black_scholes(begin_date, risk_factors, vec![])
-            .map(|value| {
-                assert!(value > 1.0934);
-                assert!(value < 1.0935);
-            });
-    }
+    put.value_black_scholes(begin_date, risk_factors, vec![])
+        .map(|value| {
+            assert!(value > 1.0934);
+            assert!(value < 1.0935);
+        });
 }
 
 #[test]
+#[allow(unused_must_use)]
 fn half_year_black_scholes_call() {
     let (call, begin_date, risk_factors) = get_test_inputs_call();
-    #[allow(unused_must_use)]
-    {
-        call.value_black_scholes(begin_date, risk_factors, vec![])
-            .map(|value| {
-                assert!(value > 4.0817);
-                assert!(value < 4.0818);
-            });
-    }
+    call.value_black_scholes(begin_date, risk_factors, vec![])
+        .map(|value| {
+            assert!(value > 4.0817);
+            assert!(value < 4.0818);
+        });
+}
+
+fn is_close(lhs: f64, rhs: f64, tolerance: f64) -> bool {
+    let approximate_magnitude = (lhs.abs() + rhs.abs()) / 2.0;
+    let abs_difference = (rhs - lhs).abs();
+    (abs_difference / approximate_magnitude) < tolerance
+}
+
+#[test]
+#[allow(unused_must_use)]
+fn black_scholes_finite_difference_delta_near_analytical_delta() {
+    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let delta_finite_difference = call.delta_fd(valuation_time, risk_factors.clone());
+    assert!(delta_finite_difference.is_ok());
+    let delta_analytic = call.delta(valuation_time, risk_factors);
+    assert!(delta_analytic.is_ok());
+    assert!(is_close(
+        delta_finite_difference.unwrap(),
+        delta_analytic.unwrap(),
+        0.05,
+    ));
 }
