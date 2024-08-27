@@ -48,9 +48,9 @@ pub fn generate_monte_carlo_paths(
             (0..parameters.steps)
                 .map(|_| rng.sample(gaussian))
                 .map(|sample| (nudt + sidt * sample).exp())
-                .scan(0.0, |acc, mut v| {
-                    v += *acc;
-                    Some(v)
+                .scan(inputs.underlying_price, |acc, v| {
+                    *acc = *acc * v;
+                    Some(*acc)
                 })
                 .collect()
         })
