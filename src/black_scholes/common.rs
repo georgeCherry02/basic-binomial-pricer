@@ -10,8 +10,8 @@ pub fn get_d1_and_d2(strike: f64, inputs: &BlackScholesInputs) -> (f64, f64) {
     let rfr_plus_vol_squared_over_two =
         inputs.risk_free_rate + (inputs.underlying_volatility.powi(2) / 2f64);
     let d1 = (ln_val_over_strike + rfr_plus_vol_squared_over_two * inputs.delta_t)
-        / (inputs.underlying_volatility * inputs.delta_t.sqrt());
-    let d2 = d1 - inputs.underlying_volatility * inputs.delta_t.sqrt();
+        / inputs.volatility_for_delta_t();
+    let d2 = d1 - inputs.volatility_for_delta_t();
     (d1, d2)
 }
 
