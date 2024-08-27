@@ -1,4 +1,3 @@
-mod black_scholes;
 mod cli;
 mod greeks;
 mod option;
@@ -6,8 +5,11 @@ mod result;
 mod risk_factor;
 mod risk_free_model;
 mod shock;
-mod tree;
 mod utils;
+
+mod black_scholes;
+mod monte_carlo;
+mod tree;
 
 use chrono::NaiveDate;
 use clap;

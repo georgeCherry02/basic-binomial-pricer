@@ -3,6 +3,8 @@ pub mod result;
 pub mod shock_grid;
 
 mod black_scholes;
+mod monte_carlo;
+
 mod greeks;
 mod risk_factor;
 mod shock;
