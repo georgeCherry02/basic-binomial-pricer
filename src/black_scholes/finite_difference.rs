@@ -36,13 +36,25 @@ impl<T> FiniteDifferenceGreeks for T
 where
     T: BlackScholes,
 {
-    fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+    fn delta_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64> {
         bump_and_reprice(self, valuation_time, risk_factors, vec![&DELTA_SHOCK])
     }
-    fn rho(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+    fn rho_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64> {
         bump_and_reprice(self, valuation_time, risk_factors, vec![&RHO_SHOCK])
     }
-    fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+    fn theta_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64> {
         let day = Duration::days(1);
         let theta: Shock = time_shock(
             String::from("time-to-expiry"),
@@ -50,7 +62,11 @@ where
         );
         bump_and_reprice(self, valuation_time, risk_factors, vec![&theta])
     }
-    fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
+    fn vega_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64> {
         bump_and_reprice(self, valuation_time, risk_factors, vec![&VEGA_SHOCK])
     }
 }

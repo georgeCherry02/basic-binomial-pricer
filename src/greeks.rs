@@ -4,10 +4,23 @@ use crate::risk_factor::RiskFactors;
 use chrono::{DateTime, Utc};
 
 pub trait FiniteDifferenceGreeks {
-    fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
-    fn rho(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
-    fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
-    fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;
+    fn delta_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64>;
+    fn rho_fd(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors)
+        -> PricerResult<f64>;
+    fn theta_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64>;
+    fn vega_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64>;
 }
 
 pub trait AnalyticalGreeks {
