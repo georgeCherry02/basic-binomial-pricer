@@ -5,12 +5,6 @@ pub struct MonteCarloInputs {
     pub annualised_historic_return: f64,
 }
 
-impl MonteCarloInputs {
-    pub fn volatility_for_delta_t(&self) -> f64 {
-        self.underlying_volatility * self.delta_t.sqrt()
-    }
-}
-
 pub struct MonteCarloParams {
     pub steps: u64,
     pub repetitions: u64,

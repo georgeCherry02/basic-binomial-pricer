@@ -39,7 +39,7 @@ pub fn generate_monte_carlo_paths(
     let dt = inputs.delta_t / parameters.steps as f64;
     let nudt =
         (inputs.annualised_historic_return - 0.5 * inputs.underlying_volatility.powi(2)) * dt;
-    let sidt = inputs.volatility_for_delta_t();
+    let sidt = inputs.underlying_volatility * dt;
 
     let gaussian = gaussian()?;
     let mut rng = rand::thread_rng();
