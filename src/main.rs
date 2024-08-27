@@ -1,5 +1,4 @@
 mod black_scholes;
-mod black_scholes_greeks;
 mod cli;
 mod greeks;
 mod option;
@@ -13,7 +12,7 @@ mod utils;
 use chrono::NaiveDate;
 use clap;
 use clap::Parser;
-use result::{PricerError, PricerResult};
+use result::PricerResult;
 
 #[derive(Parser)]
 pub struct Cli {

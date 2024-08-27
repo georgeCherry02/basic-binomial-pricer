@@ -3,7 +3,6 @@ pub mod result;
 pub mod shock_grid;
 
 mod black_scholes;
-mod black_scholes_greeks;
 mod greeks;
 mod risk_factor;
 mod shock;

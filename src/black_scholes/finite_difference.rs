@@ -1,4 +1,5 @@
-use crate::black_scholes::BlackScholes;
+use super::BlackScholes;
+
 use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::{PricerError, PricerResult};
 use crate::risk_factor::RiskFactors;
