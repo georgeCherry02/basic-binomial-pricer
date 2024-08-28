@@ -1,5 +1,5 @@
 use super::common::{gaussian, get_d1_and_d2};
-use super::types::BlackScholesInputs;
+use super::types::BlackScholesInputsOld;
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::PricerResult;
 use crate::risk_factors::RiskFactors;
@@ -19,7 +19,7 @@ pub trait BlackScholes: FinancialOption {
     ) -> PricerResult<f64>;
 }
 
-fn apply_shock(input: &mut BlackScholesInputs, shock: &Shock) {
+fn apply_shock(input: &mut BlackScholesInputsOld, shock: &Shock) {
     match shock {
         Shock::InterestRateShock(shock) => input.risk_free_rate = shock.apply(input.risk_free_rate),
         Shock::PriceShock(shock) => input.underlying_price = shock.apply(input.underlying_price),
@@ -30,7 +30,7 @@ fn apply_shock(input: &mut BlackScholesInputs, shock: &Shock) {
     };
 }
 
-fn apply_scenario(mut input: BlackScholesInputs, scenario: Scenario) -> BlackScholesInputs {
+fn apply_scenario(mut input: BlackScholesInputsOld, scenario: Scenario) -> BlackScholesInputsOld {
     for shock in scenario {
         apply_shock(&mut input, shock);
     }
@@ -44,7 +44,7 @@ impl BlackScholes for Call {
         risk_factors: RiskFactors,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let shocked_inputs = apply_scenario(inputs, scenario);
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
         gaussian()
@@ -63,7 +63,7 @@ impl BlackScholes for Put {
         risk_factors: RiskFactors,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let shocked_inputs = apply_scenario(inputs, scenario);
         let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
         gaussian()

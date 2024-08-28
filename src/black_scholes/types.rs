@@ -4,7 +4,7 @@ use crate::option::FinancialOption;
 use crate::risk_factors::RiskFactors;
 use crate::utils::date::get_duration_in_years;
 
-pub struct BlackScholesInputs {
+pub struct BlackScholesInputsOld {
     pub delta_t: f64,
     pub underlying_price: f64,
     pub underlying_volatility: f64,
@@ -12,14 +12,14 @@ pub struct BlackScholesInputs {
     pub annualised_dividend_rate: f64,
 }
 
-impl BlackScholesInputs {
+impl BlackScholesInputsOld {
     pub fn gather<T: FinancialOption>(
         option: &T,
         valuation_time: DateTime<Utc>,
         risk_factors: RiskFactors,
-    ) -> BlackScholesInputs {
+    ) -> BlackScholesInputsOld {
         let delta_t = get_duration_in_years(valuation_time, option.expiry());
-        BlackScholesInputs {
+        BlackScholesInputsOld {
             delta_t,
             underlying_price: risk_factors.underlying_price,
             underlying_volatility: risk_factors.underlying_volatility,

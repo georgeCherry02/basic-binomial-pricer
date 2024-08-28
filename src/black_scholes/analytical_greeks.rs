@@ -1,5 +1,5 @@
 use super::common::{gaussian, get_d1_and_d2};
-use super::types::BlackScholesInputs;
+use super::types::BlackScholesInputsOld;
 use super::BlackScholes;
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::PricerResult;
@@ -23,26 +23,26 @@ pub trait BlackScholesGreeks: BlackScholes {
 
 impl BlackScholesGreeks for Call {
     fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, _) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| inputs.dividend_adjustment() * gaussian.cdf(d1))
     }
     fn gamma(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, _) = get_d1_and_d2(self.strike(), &inputs);
         let one_over_price_vol_delta_t = inputs.dividend_adjustment()
             / (inputs.underlying_price * inputs.volatility_for_delta_t());
         gaussian().map(|gaussian| gaussian.pdf(d1) * one_over_price_vol_delta_t)
     }
     fn rho(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (_, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| {
             0.01 * self.strike() * inputs.delta_t * inputs.risk_free_adjustment() * gaussian.cdf(d2)
         })
     }
     fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         let lost_price_movement =
             -(inputs.underlying_price * inputs.volatility_for_delta_t()) / (2.0 * inputs.delta_t);
@@ -59,7 +59,7 @@ impl BlackScholesGreeks for Call {
             .map(|value| value / DAYS_IN_YEAR as f64)
     }
     fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, _) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| {
             0.01 * inputs.dividend_adjusted_price() * inputs.delta_t.sqrt() * gaussian.pdf(d1)
@@ -69,19 +69,19 @@ impl BlackScholesGreeks for Call {
 
 impl BlackScholesGreeks for Put {
     fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, _) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| inputs.dividend_adjustment() * (gaussian.cdf(d1) - 1.0))
     }
     fn gamma(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, _) = get_d1_and_d2(self.strike(), &inputs);
         let one_over_price_vol_delta_t = inputs.dividend_adjustment()
             / (inputs.underlying_price * inputs.volatility_for_delta_t());
         gaussian().map(|gaussian| gaussian.pdf(d1) * one_over_price_vol_delta_t)
     }
     fn rho(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (_, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| {
             -0.01
@@ -92,7 +92,7 @@ impl BlackScholesGreeks for Put {
         })
     }
     fn theta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         let lost_price_movement =
             -(inputs.underlying_price * inputs.volatility_for_delta_t()) / (2.0 * inputs.delta_t);
@@ -109,7 +109,7 @@ impl BlackScholesGreeks for Put {
             .map(|value| value / DAYS_IN_YEAR as f64)
     }
     fn vega(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64> {
-        let inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
         let (d1, _) = get_d1_and_d2(self.strike(), &inputs);
         gaussian().map(|gaussian| {
             0.01 * inputs.dividend_adjusted_price() * inputs.delta_t.sqrt() * gaussian.pdf(d1)
