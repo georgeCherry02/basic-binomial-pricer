@@ -2,7 +2,7 @@ use super::types::{MonteCarloInputs, MonteCarloParams};
 
 use crate::option::{Call, Put, FinancialOption};
 use crate::result::{PricerError, PricerResult};
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 
 use chrono::{DateTime, Utc};
 use rand::Rng;

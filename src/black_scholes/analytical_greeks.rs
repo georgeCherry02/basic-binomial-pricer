@@ -3,7 +3,7 @@ use super::types::BlackScholesInputs;
 use super::BlackScholes;
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::PricerResult;
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 
 use chrono::{DateTime, Utc};
 

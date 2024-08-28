@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 
 use crate::option::FinancialOption;
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 use crate::utils::date::get_duration_in_years;
 
 pub struct BlackScholesInputs {

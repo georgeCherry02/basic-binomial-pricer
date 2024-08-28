@@ -2,7 +2,7 @@ use super::common::{gaussian, get_d1_and_d2};
 use super::types::BlackScholesInputs;
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::PricerResult;
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 use crate::shock::{FloatShock, Scenario, Shock};
 
 use chrono::{DateTime, Utc};

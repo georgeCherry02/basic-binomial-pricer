@@ -2,7 +2,7 @@ mod cli;
 mod greeks;
 mod option;
 mod result;
-mod risk_factor;
+mod risk_factors;
 mod risk_free_model;
 mod shock;
 mod utils;

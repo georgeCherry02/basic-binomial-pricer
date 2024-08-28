@@ -1,5 +1,5 @@
 use crate::option::Call;
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 use crate::BlackScholes;
 
 use pyo3::prelude::*;

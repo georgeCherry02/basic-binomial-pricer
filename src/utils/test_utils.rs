@@ -1,7 +1,7 @@
 use chrono::{DateTime, TimeZone, Utc};
 
 use crate::option::{get_call, get_put, Call, Put};
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 
 fn get_test_evaluation_period() -> (DateTime<Utc>, DateTime<Utc>) {
     (

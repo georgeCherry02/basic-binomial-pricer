@@ -2,7 +2,7 @@ use super::BlackScholes;
 
 use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::{PricerError, PricerResult};
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 use crate::shock::{absolute_shock, absolute_time_shock};
 use crate::shock::{interest_rate_shock, price_shock, time_shock, volatility_shock};
 use crate::shock::{Scenario, Shock, ShockDirection};

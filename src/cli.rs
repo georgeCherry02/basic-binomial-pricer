@@ -3,7 +3,7 @@ use crate::Cli;
 use crate::black_scholes::BlackScholes;
 use crate::option::{get_call, get_put};
 use crate::result::{PricerError, PricerResult};
-use crate::risk_factor::RiskFactors;
+use crate::risk_factors::RiskFactors;
 
 use chrono::prelude::Utc;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};

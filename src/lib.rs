@@ -6,7 +6,7 @@ mod black_scholes;
 mod monte_carlo;
 
 mod greeks;
-mod risk_factor;
+mod risk_factors;
 mod shock;
 mod utils;
 
@@ -17,7 +17,7 @@ use chrono::prelude::Utc;
 pub use black_scholes::BlackScholes;
 use monte_carlo::{generate_monte_carlo_paths, MonteCarloInputs, MonteCarloParams};
 use option::{Call, FinancialOption, Put};
-use risk_factor::RiskFactors;
+use risk_factors::RiskFactors;
 use shock_grid::{generate_shock_grid, ShockGrid, ShockLimits};
 
 use log::debug;
