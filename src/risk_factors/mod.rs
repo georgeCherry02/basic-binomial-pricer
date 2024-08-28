@@ -1,7 +1,7 @@
-mod discount;
-mod dividend;
-mod price;
-mod volatility;
+pub mod discount;
+pub mod dividend;
+pub mod price;
+pub mod volatility;
 
 #[derive(Clone)]
 pub struct RiskFactors {
