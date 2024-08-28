@@ -38,8 +38,13 @@ impl ShockGrid {
         let call: &Call = py_call.get();
         let now = Utc::now();
         let valuations = self.shocks.iter().map(|shock_point| {
-            let risk_factors =
-                RiskFactors::new(shock_point.price, shock_point.volatility, risk_free_rate);
+            let risk_factors = RiskFactors::new(
+                shock_point.price,
+                shock_point.volatility,
+                risk_free_rate,
+                0.,
+                0.,
+            );
             call.value_black_scholes(now, risk_factors, vec![])
                 .unwrap_or_default()
         });

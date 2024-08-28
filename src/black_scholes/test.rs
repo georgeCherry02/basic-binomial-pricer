@@ -15,10 +15,18 @@ fn get_test_evaluation_period() -> (DateTime<Utc>, DateTime<Utc>) {
 }
 
 fn get_test_risk_factors() -> RiskFactors {
-    let underlying_price = 42f64;
-    let underlying_volatility = 0.2f64;
-    let risk_free_rate = 0.05f64;
-    RiskFactors::new(underlying_price, underlying_volatility, risk_free_rate)
+    let underlying_price = 42.;
+    let underlying_volatility = 0.2;
+    let risk_free_rate = 0.05;
+    let annualised_dividend_rate = 0.;
+    let annualised_historic_return = 0.;
+    RiskFactors::new(
+        underlying_price,
+        underlying_volatility,
+        risk_free_rate,
+        annualised_dividend_rate,
+        annualised_historic_return,
+    )
 }
 
 fn get_test_inputs_call() -> (Call, DateTime<Utc>, RiskFactors) {

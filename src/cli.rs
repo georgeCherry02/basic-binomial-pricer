@@ -66,7 +66,7 @@ fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
     let naive_date = args.expiry;
     let expiry = get_expiry_datetime(naive_date)?;
     let option = construct_option(&args, expiry, 0.0)?;
-    let risk_factors = RiskFactors::new(args.underlying_price, args.volatility, args.apr);
+    let risk_factors = RiskFactors::new(args.underlying_price, args.volatility, args.apr, 0., 0.);
     Ok(ValidatedInterface {
         option,
         risk_factors,

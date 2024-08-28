@@ -29,9 +29,10 @@ pub fn price_black_scholes(
     volatility: f64,
     underlying_price: f64,
     apr: f64,
+    dividend_rate: f64,
 ) -> PyResult<f64> {
     let call = py_call.borrow();
-    let risk_factors = RiskFactors::new(underlying_price, volatility, apr);
+    let risk_factors = RiskFactors::new(underlying_price, volatility, apr, dividend_rate, 0.);
     call.value_black_scholes(Utc::now(), risk_factors, vec![])
         .map_err(|e| e.into())
         .map(|r| {
