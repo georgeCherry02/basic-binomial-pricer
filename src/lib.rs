@@ -8,6 +8,7 @@ mod monte_carlo;
 mod greeks;
 mod risk_factors;
 mod shock;
+mod symbol;
 mod utils;
 
 use pyo3::prelude::*;

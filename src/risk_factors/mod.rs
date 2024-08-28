@@ -1,3 +1,8 @@
+mod discount;
+mod dividend;
+mod price;
+mod volatility;
+
 #[derive(Clone)]
 pub struct RiskFactors {
     pub underlying_price: f64,

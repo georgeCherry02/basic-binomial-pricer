@@ -5,6 +5,7 @@ mod result;
 mod risk_factors;
 mod risk_free_model;
 mod shock;
+mod symbol;
 mod utils;
 
 mod black_scholes;
