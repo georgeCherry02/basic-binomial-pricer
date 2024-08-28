@@ -25,6 +25,10 @@ impl MonteCarloInputs {
             annualised_historic_return: risk_factors.annualised_historic_return,
         }
     }
+
+    pub fn historic_return_discount(&self) -> f64 {
+        (-self.annualised_historic_return * self.delta_t).exp()
+    }
 }
 
 pub struct MonteCarloParams {

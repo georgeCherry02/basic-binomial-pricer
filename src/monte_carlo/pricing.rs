@@ -1,9 +1,8 @@
 use super::types::{MonteCarloInputs, MonteCarloParams};
 
-use crate::option::{Call, FinancialOption};
+use crate::option::{Call, Put, FinancialOption};
 use crate::result::{PricerError, PricerResult};
 use crate::risk_factor::RiskFactors;
-use crate::utils::date::get_duration_in_years;
 
 use chrono::{DateTime, Utc};
 use rand::Rng;
@@ -33,8 +32,8 @@ fn gaussian() -> PricerResult<Normal> {
 }
 
 pub fn generate_monte_carlo_paths(
-    inputs: MonteCarloInputs,
-    parameters: MonteCarloParams,
+    inputs: &MonteCarloInputs,
+    parameters: &MonteCarloParams,
 ) -> PricerResult<Vec<Vec<f64>>> {
     let dt = inputs.delta_t / parameters.steps as f64;
     let nudt =
@@ -64,7 +63,33 @@ impl MonteCarlo for Call {
         risk_factors: RiskFactors,
         parameters: MonteCarloParams,
     ) -> PricerResult<f64> {
-        let delta_t = get_duration_in_years(valuation_time, self.expiry());
-        Ok(0.)
+        let inputs = MonteCarloInputs::gather(self, valuation_time, risk_factors);
+        let paths = generate_monte_carlo_paths(&inputs, &parameters)?;
+        let payoffs = paths
+            .iter()
+            .flat_map(|path| path.last())
+            .map(|value| value - self.strike())
+            .map(|value| if value > 0. { value } else { 0. });
+        let expected_payoff = payoffs.sum::<f64>() / parameters.repetitions as f64;
+        Ok(expected_payoff * inputs.historic_return_discount())
+    }
+}
+
+impl MonteCarlo for Put {
+    fn value_monte_carlo(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+        parameters: MonteCarloParams,
+    ) -> PricerResult<f64> {
+        let inputs = MonteCarloInputs::gather(self, valuation_time, risk_factors);
+        let paths = generate_monte_carlo_paths(&inputs, &parameters)?;
+        let payoffs = paths
+            .iter()
+            .flat_map(|path| path.last())
+            .map(|value| self.strike() - value)
+            .map(|value| if value > 0. { value } else { 0. });
+        let expected_payoff = payoffs.sum::<f64>() / parameters.repetitions as f64;
+        Ok(expected_payoff * inputs.historic_return_discount())
     }
 }

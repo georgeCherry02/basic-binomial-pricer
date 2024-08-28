@@ -60,7 +60,7 @@ pub fn gen_monte_carlo_paths(
         steps: 10000,
         repetitions: 1000,
     };
-    generate_monte_carlo_paths(inputs, params).map_err(|e| e.into())
+    generate_monte_carlo_paths(&inputs, &params).map_err(|e| e.into())
 }
 
 #[pymodule]
