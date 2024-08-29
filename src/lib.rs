@@ -4,6 +4,7 @@ pub mod shock_grid;
 
 mod black_scholes;
 // mod monte_carlo;
+mod tree;
 
 mod finite_difference;
 mod greeks;
@@ -20,7 +21,7 @@ use chrono::{DateTime, Utc};
 pub use black_scholes::{BlackScholes, BlackScholesRiskFactors};
 // use monte_carlo::{generate_monte_carlo_paths, MonteCarlo, MonteCarloInputs, MonteCarloParams};
 
-use option::{Call, FinancialOption, Put};
+use option::{Call, Put};
 use risk_factors::{discount::rfr_discount, RiskFactors};
 use shock_grid::{generate_shock_grid, ShockGrid, ShockLimits};
 
@@ -28,7 +29,6 @@ use result::PricerResult;
 use shock::Scenario;
 
 use log::debug;
-use utils::date::get_duration_in_years;
 
 pub enum Priceable<'a> {
     BlackScholes(&'a dyn BlackScholes),

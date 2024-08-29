@@ -2,7 +2,9 @@ use super::BlackScholes;
 
 use super::BlackScholesGreeks;
 
+use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::PricerResult;
+use crate::Priceable;
 
 use crate::utils::test_utils::{get_test_inputs_call, get_test_inputs_put, is_close};
 
@@ -26,12 +28,12 @@ fn half_year_black_scholes_call() {
     });
 }
 
-/*
 #[test]
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_delta_near_analytical_delta() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_inputs_call();
-    let delta_finite_difference = call.delta(valuation_time, risk_factors.clone())?;
+    let priceable = Priceable::BlackScholes(&call);
+    let delta_finite_difference = priceable.delta_fd(valuation_time, risk_factors.clone())?;
     let delta_analytic = call.delta(valuation_time, risk_factors)?;
     assert!(is_close(delta_finite_difference, delta_analytic, 0.05), "Finite difference delta ({}) differs from analytical delta({}) for Black-Scholes by more than 5%", delta_finite_difference, delta_analytic);
     Ok(())
@@ -41,7 +43,8 @@ fn black_scholes_finite_difference_delta_near_analytical_delta() -> PricerResult
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_vega_near_analytical_vega() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_inputs_call();
-    let vega_finite_difference = call.vega(valuation_time, risk_factors.clone())?;
+    let priceable = Priceable::BlackScholes(&call);
+    let vega_finite_difference = priceable.vega_fd(valuation_time, risk_factors.clone())?;
     let vega_analytic = call.vega(valuation_time, risk_factors)?;
     assert!(is_close(vega_finite_difference, vega_analytic, 0.1), "Finite difference vega ({}) differs from analytical vega({}) for Black-Scholes by more than 10%", vega_finite_difference, vega_analytic);
     Ok(())
@@ -51,7 +54,8 @@ fn black_scholes_finite_difference_vega_near_analytical_vega() -> PricerResult<(
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_rho_near_analytical_rho() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_inputs_call();
-    let rho_finite_difference = call.rho_fd(valuation_time, risk_factors.clone())?;
+    let priceable = Priceable::BlackScholes(&call);
+    let rho_finite_difference = priceable.rho_fd(valuation_time, risk_factors.clone())?;
     let rho_analytic = call.rho(valuation_time, risk_factors)?;
     assert!(
         is_close(rho_finite_difference, rho_analytic, 0.1),
@@ -66,9 +70,9 @@ fn black_scholes_finite_difference_rho_near_analytical_rho() -> PricerResult<()>
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_theta_near_analytical_theta() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_inputs_call();
-    let theta_finite_difference = call.theta_fd(valuation_time, risk_factors.clone())?;
+    let priceable = Priceable::BlackScholes(&call);
+    let theta_finite_difference = priceable.theta_fd(valuation_time, risk_factors.clone())?;
     let theta_analytic = call.theta(valuation_time, risk_factors)?;
     assert!(is_close(theta_finite_difference, theta_analytic, 0.05), "Finite difference theta ({}) differs from analytical theta({}) for Black-Scholes by more than 5%", theta_finite_difference, theta_analytic);
     Ok(())
 }
-*/
