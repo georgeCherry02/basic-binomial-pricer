@@ -3,10 +3,11 @@ use super::types::{MonteCarloInputs, MonteCarloParams, MonteCarloRiskFactors};
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::{PricerError, PricerResult};
 
-use crate::risk_factors::RiskFactors;
-use crate::risk_factors::price::{Price, PriceTick};
-use crate::risk_factors::volatility::{Volatility, ImpliedVolatility};
 use crate::risk_factors::discount::{DiscountFactor, HistoricReturn};
+use crate::risk_factors::price::{Price, PriceTick};
+use crate::risk_factors::volatility::{ImpliedVolatility, Volatility};
+use crate::risk_factors::RiskFactors;
+use crate::utils::date::get_duration_in_years;
 
 use chrono::{DateTime, Utc};
 use rand::Rng;
@@ -14,18 +15,31 @@ use statrs::distribution::Normal;
 use statrs::StatsError;
 
 pub trait MonteCarlo: FinancialOption {
-    fn get_mc_risk_factors(&self, price: f64, volatility: f64, historic_return: f64) -> RiskFactors {
+    fn get_monte_carlo_risk_factors(
+        &self,
+        price: f64,
+        volatility: f64,
+        historic_return: f64,
+    ) -> RiskFactors {
         RiskFactors {
-            price_sensitivities: vec![Price::PriceTick(PriceTick::new(self.symbol().clone(), price))],
-            volatility_sensitivities: vec![Volatility::ImpliedVolatility(ImpliedVolatility::new(self.symbol().clone(), volatility))],
-            discount_factors: vec![DiscountFactor::HistoricReturn(HistoricReturn::new(self.symbol().clone(), historic_return))],
-            dividend_sensitivities: vec![]
+            price_sensitivities: vec![Price::PriceTick(PriceTick::new(
+                self.symbol().clone(),
+                price,
+            ))],
+            volatility_sensitivities: vec![Volatility::ImpliedVolatility(ImpliedVolatility::new(
+                self.symbol().clone(),
+                volatility,
+            ))],
+            discount_factors: vec![DiscountFactor::HistoricReturn(HistoricReturn::new(
+                self.symbol().clone(),
+                historic_return,
+            ))],
+            dividend_sensitivities: vec![],
         }
     }
     fn value_monte_carlo_impl(
         &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: MonteCarloRiskFactors,
+        inputs: MonteCarloInputs,
         parameters: MonteCarloParams,
     ) -> PricerResult<f64>;
     fn value_monte_carlo(
@@ -35,7 +49,19 @@ pub trait MonteCarlo: FinancialOption {
         parameters: MonteCarloParams,
     ) -> PricerResult<f64> {
         risk_factors.try_into().and_then(|risk_factors| {
-            self.value_monte_carlo_impl(valuation_time, risk_factors, parameters)
+            let inputs = MonteCarloInputs::gather(self.expiry(), valuation_time, risk_factors);
+            self.value_monte_carlo_impl(inputs, parameters)
+        })
+    }
+    fn generate_monte_carlo_paths(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+        parameters: MonteCarloParams,
+    ) -> PricerResult<Vec<Vec<f64>>> {
+        risk_factors.try_into().and_then(|risk_factors| {
+            let inputs = MonteCarloInputs::gather(self.expiry(), valuation_time, risk_factors);
+            generate_monte_carlo_paths(&inputs, &parameters)
         })
     }
 }
@@ -80,11 +106,9 @@ pub fn generate_monte_carlo_paths(
 impl MonteCarlo for Call {
     fn value_monte_carlo_impl(
         &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: MonteCarloRiskFactors,
+        inputs: MonteCarloInputs,
         parameters: MonteCarloParams,
     ) -> PricerResult<f64> {
-        let inputs = MonteCarloInputs::gather(self, valuation_time, risk_factors);
         let paths = generate_monte_carlo_paths(&inputs, &parameters)?;
         let payoffs = paths
             .iter()
@@ -99,11 +123,9 @@ impl MonteCarlo for Call {
 impl MonteCarlo for Put {
     fn value_monte_carlo_impl(
         &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: MonteCarloRiskFactors,
+        inputs: MonteCarloInputs,
         parameters: MonteCarloParams,
     ) -> PricerResult<f64> {
-        let inputs = MonteCarloInputs::gather(self, valuation_time, risk_factors);
         let paths = generate_monte_carlo_paths(&inputs, &parameters)?;
         let payoffs = paths
             .iter()

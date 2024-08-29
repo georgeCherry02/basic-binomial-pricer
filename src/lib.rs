@@ -55,7 +55,14 @@ impl Pricer for Priceable<'_> {
             Priceable::BlackScholes(bs_option) => {
                 bs_option.value_black_scholes(valuation_time, risk_factors, scenario)
             }
-            Priceable::MonteCarlo(ms_option) => ms_option.value_monte_carlo(valuation_time, risk_factors, MonteCarloParams{ steps: 1000, repetitions: 100 }),
+            Priceable::MonteCarlo(ms_option) => ms_option.value_monte_carlo(
+                valuation_time,
+                risk_factors,
+                MonteCarloParams {
+                    steps: 1000,
+                    repetitions: 100,
+                },
+            ),
         }
     }
 }
@@ -84,7 +91,6 @@ pub fn price_black_scholes(
         })
 }
 
-/*
 #[pyfunction]
 pub fn gen_monte_carlo_paths(
     py_call: Bound<Call>,
@@ -93,20 +99,21 @@ pub fn gen_monte_carlo_paths(
     annualised_historic_return: f64,
 ) -> PyResult<Vec<Vec<f64>>> {
     let call = py_call.borrow();
-    let delta_t = get_duration_in_years(Utc::now(), call.expiry());
-    let inputs = MonteCarloInputs {
-        delta_t,
+    let risk_factors = call.get_monte_carlo_risk_factors(
         underlying_price,
         underlying_volatility,
         annualised_historic_return,
-    };
-    let params = MonteCarloParams {
-        steps: 10000,
-        repetitions: 1000,
-    };
-    generate_monte_carlo_paths(&inputs, &params).map_err(|e| e.into())
+    );
+    call.generate_monte_carlo_paths(
+        Utc::now(),
+        risk_factors,
+        MonteCarloParams {
+            steps: 10000,
+            repetitions: 1000,
+        },
+    )
+    .map_err(|e| e.into())
 }
-*/
 
 #[pymodule]
 fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -120,6 +127,6 @@ fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ShockLimits>()?;
     m.add_function(wrap_pyfunction!(generate_shock_grid, m)?)?;
 
-    // m.add_function(wrap_pyfunction!(gen_monte_carlo_paths, m)?)?;
+    m.add_function(wrap_pyfunction!(gen_monte_carlo_paths, m)?)?;
     Ok(())
 }

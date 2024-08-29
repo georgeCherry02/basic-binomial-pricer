@@ -20,12 +20,12 @@ pub struct MonteCarloInputs {
 }
 
 impl MonteCarloInputs {
-    pub fn gather<T: FinancialOption>(
-        option: &T,
+    pub fn gather(
+        expiry: DateTime<Utc>,
         valuation_time: DateTime<Utc>,
         risk_factors: MonteCarloRiskFactors,
     ) -> MonteCarloInputs {
-        let delta_t = get_duration_in_years(valuation_time, option.expiry());
+        let delta_t = get_duration_in_years(valuation_time, expiry);
         MonteCarloInputs {
             delta_t,
             risk_factors,
