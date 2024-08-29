@@ -2,7 +2,7 @@ use super::{MonteCarlo, MonteCarloParams};
 use crate::black_scholes::BlackScholes;
 
 use crate::result::PricerResult;
-use crate::utils::test_utils::{get_test_inputs_call, get_test_inputs_put, is_close};
+use crate::utils::test_utils::{get_test_call, get_test_put, is_close};
 
 fn monte_carlo_params() -> MonteCarloParams {
     MonteCarloParams {
@@ -13,7 +13,7 @@ fn monte_carlo_params() -> MonteCarloParams {
 
 #[test]
 fn half_year_call_monte_carlo_near_black_scholes() -> PricerResult<()> {
-    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let (call, valuation_time, risk_factors) = get_test_call();
     let black_scholes_valuation =
         call.value_black_scholes(valuation_time, risk_factors.clone(), vec![])?;
     let monte_carlo_valuation =
@@ -29,7 +29,7 @@ fn half_year_call_monte_carlo_near_black_scholes() -> PricerResult<()> {
 
 #[test]
 fn half_year_put_monte_carlo_near_black_scholes() -> PricerResult<()> {
-    let (put, valuation_time, risk_factors) = get_test_inputs_put();
+    let (put, valuation_time, risk_factors) = get_test_put();
     let black_scholes_valuation =
         put.value_black_scholes(valuation_time, risk_factors.clone(), vec![])?;
     let monte_carlo_valuation =

@@ -16,7 +16,7 @@ use chrono::{DateTime, Utc};
 pub struct BlackScholesRiskFactors {
     price_risk_factor: Price,
     volatility_risk_factor: Volatility,
-    discounting_factor: DiscountFactor,
+    discount_factor: DiscountFactor,
     dividend_factor: AnnualisedDividendRate,
 }
 
@@ -47,7 +47,7 @@ impl BlackScholesRiskFactors {
                 symbol.clone(),
                 volatility,
             )),
-            discounting_factor: DiscountFactor::RiskFreeRate(InterestRate::new(
+            discount_factor: DiscountFactor::RiskFreeRate(InterestRate::new(
                 rfr_symbol,
                 risk_free_rate,
             )),
@@ -74,7 +74,7 @@ impl BlackScholesInputs {
         }
     }
     pub fn discount_rate(&self) -> f64 {
-        self.risk_factors.discounting_factor.rate()
+        self.risk_factors.discount_factor.rate()
     }
     pub fn annualised_dividend_rate(&self) -> f64 {
         self.risk_factors.dividend_factor.rate()
@@ -87,7 +87,7 @@ impl BlackScholesInputs {
     }
     pub fn risk_free_adjustment(&self) -> f64 {
         self.risk_factors
-            .discounting_factor
+            .discount_factor
             .discount_factor(self.delta_t)
     }
     pub fn volatility_for_delta_t(&self) -> f64 {
@@ -107,7 +107,7 @@ impl ApplyShock<BlackScholesInputs> for Shock {
     fn apply(&self, applicant: &mut BlackScholesInputs) {
         match self {
             Shock::InterestRateShock(shock) => {
-                shock.apply(&mut applicant.risk_factors.discounting_factor)
+                shock.apply(&mut applicant.risk_factors.discount_factor)
             }
             Shock::PriceShock(shock) => shock.apply(&mut applicant.risk_factors.price_risk_factor),
             Shock::TimeShock(shock) => shock.apply(&mut applicant.delta_t),
@@ -145,7 +145,7 @@ impl TryFrom<RiskFactors> for BlackScholesRiskFactors {
         let price_risk_factor = get_first_and_ensure_one(risk_factors.price_sensitivities)?;
         let volatility_risk_factor =
             get_first_and_ensure_one(risk_factors.volatility_sensitivities)?;
-        let discounting_factor = get_first_and_ensure_one(risk_factors.discount_factors)?;
+        let discount_factor = get_first_and_ensure_one(risk_factors.discount_factors)?;
         let dividend_factor = get_first_and_ensure_one(risk_factors.dividend_sensitivities)
             .and_then(|dividend| match dividend {
             Dividend::AnnualisedRate(adr) => Ok(adr),
@@ -154,7 +154,7 @@ impl TryFrom<RiskFactors> for BlackScholesRiskFactors {
         Ok(BlackScholesRiskFactors {
             price_risk_factor,
             volatility_risk_factor,
-            discounting_factor,
+            discount_factor,
             dividend_factor,
         })
     }

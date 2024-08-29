@@ -44,7 +44,7 @@ pub trait BlackScholes: FinancialOption {
         check_symbols(risk_factors.dividend_risk_factor(), self.symbol())?;
         Ok(())
     }
-    fn get_risk_factors(
+    fn get_black_scholes_risk_factors(
         &self,
         price: f64,
         volatility: f64,
@@ -73,7 +73,7 @@ pub trait BlackScholes: FinancialOption {
         risk_factors: BlackScholesRiskFactors,
         shock_scenarios: Scenario,
     ) -> PricerResult<f64>;
-    fn value(
+    fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
         risk_factors: RiskFactors,

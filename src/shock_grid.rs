@@ -39,13 +39,14 @@ impl ShockGrid {
         let now = Utc::now();
         let discounting_factor = rfr_discount("US Treasury 3M".into(), risk_free_rate);
         let valuations = self.shocks.iter().map(|shock_point| {
-            let risk_factors = call.get_risk_factors(
+            let risk_factors = call.get_black_scholes_risk_factors(
                 shock_point.price,
                 shock_point.volatility,
                 0.,
                 discounting_factor.clone(),
             );
-            call.value(now, risk_factors, vec![]).unwrap_or_default()
+            call.value_black_scholes(now, risk_factors, vec![])
+                .unwrap_or_default()
         });
         let (n_price, n_vol) = self.dimensions;
         let mut out = vec![Vec::with_capacity(n_price); n_vol];

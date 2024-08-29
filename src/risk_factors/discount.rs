@@ -31,6 +31,15 @@ impl InterestRate {
     }
 }
 
+impl HistoricReturn {
+    pub fn new(symbol: Symbol, historic_return: f64) -> HistoricReturn {
+        HistoricReturn {
+            symbol,
+            historic_return,
+        }
+    }
+}
+
 pub trait DiscountRf {
     fn rate(&self) -> f64;
     fn discount_factor(&self, delta_t: f64) -> f64 {

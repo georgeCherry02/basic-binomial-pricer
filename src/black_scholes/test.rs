@@ -6,32 +6,34 @@ use crate::greeks::FiniteDifferenceGreeks;
 use crate::result::PricerResult;
 use crate::Priceable;
 
-use crate::utils::test_utils::{get_test_inputs_call, get_test_inputs_put, is_close};
+use crate::utils::test_utils::{get_test_call, get_test_put, is_close};
 
 #[test]
 #[allow(unused_must_use)]
 fn half_year_black_scholes_put() {
-    let (put, begin_date, risk_factors) = get_test_inputs_put();
-    put.value(begin_date, risk_factors, vec![]).map(|value| {
-        assert!(value > 1.0934);
-        assert!(value < 1.0935);
-    });
+    let (put, begin_date, risk_factors) = get_test_put();
+    put.value_black_scholes(begin_date, risk_factors, vec![])
+        .map(|value| {
+            assert!(value > 1.0934);
+            assert!(value < 1.0935);
+        });
 }
 
 #[test]
 #[allow(unused_must_use)]
 fn half_year_black_scholes_call() {
-    let (call, begin_date, risk_factors) = get_test_inputs_call();
-    call.value(begin_date, risk_factors, vec![]).map(|value| {
-        assert!(value > 4.0817);
-        assert!(value < 4.0818);
-    });
+    let (call, begin_date, risk_factors) = get_test_call();
+    call.value_black_scholes(begin_date, risk_factors, vec![])
+        .map(|value| {
+            assert!(value > 4.0817);
+            assert!(value < 4.0818);
+        });
 }
 
 #[test]
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_delta_near_analytical_delta() -> PricerResult<()> {
-    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let (call, valuation_time, risk_factors) = get_test_call();
     let priceable = Priceable::BlackScholes(&call);
     let delta_finite_difference = priceable.delta_fd(valuation_time, risk_factors.clone())?;
     let delta_analytic = call.delta(valuation_time, risk_factors)?;
@@ -42,7 +44,7 @@ fn black_scholes_finite_difference_delta_near_analytical_delta() -> PricerResult
 #[test]
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_vega_near_analytical_vega() -> PricerResult<()> {
-    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let (call, valuation_time, risk_factors) = get_test_call();
     let priceable = Priceable::BlackScholes(&call);
     let vega_finite_difference = priceable.vega_fd(valuation_time, risk_factors.clone())?;
     let vega_analytic = call.vega(valuation_time, risk_factors)?;
@@ -53,7 +55,7 @@ fn black_scholes_finite_difference_vega_near_analytical_vega() -> PricerResult<(
 #[test]
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_rho_near_analytical_rho() -> PricerResult<()> {
-    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let (call, valuation_time, risk_factors) = get_test_call();
     let priceable = Priceable::BlackScholes(&call);
     let rho_finite_difference = priceable.rho_fd(valuation_time, risk_factors.clone())?;
     let rho_analytic = call.rho(valuation_time, risk_factors)?;
@@ -69,7 +71,7 @@ fn black_scholes_finite_difference_rho_near_analytical_rho() -> PricerResult<()>
 #[test]
 #[allow(unused_must_use)]
 fn black_scholes_finite_difference_theta_near_analytical_theta() -> PricerResult<()> {
-    let (call, valuation_time, risk_factors) = get_test_inputs_call();
+    let (call, valuation_time, risk_factors) = get_test_call();
     let priceable = Priceable::BlackScholes(&call);
     let theta_finite_difference = priceable.theta_fd(valuation_time, risk_factors.clone())?;
     let theta_analytic = call.theta(valuation_time, risk_factors)?;

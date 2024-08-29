@@ -3,7 +3,7 @@ pub mod result;
 pub mod shock_grid;
 
 mod black_scholes;
-// mod monte_carlo;
+mod monte_carlo;
 mod tree;
 
 mod finite_difference;
@@ -19,7 +19,7 @@ use pyo3::prelude::*;
 use chrono::{DateTime, Utc};
 
 pub use black_scholes::{BlackScholes, BlackScholesRiskFactors};
-// use monte_carlo::{generate_monte_carlo_paths, MonteCarlo, MonteCarloInputs, MonteCarloParams};
+use monte_carlo::{generate_monte_carlo_paths, MonteCarlo, MonteCarloInputs, MonteCarloParams};
 
 use option::{Call, Put};
 use risk_factors::{discount::rfr_discount, RiskFactors};
@@ -32,7 +32,7 @@ use log::debug;
 
 pub enum Priceable<'a> {
     BlackScholes(&'a dyn BlackScholes),
-    //    MonteCarlo(&'a dyn MonteCarlo),
+    MonteCarlo(&'a dyn MonteCarlo),
 }
 
 pub trait Pricer {
@@ -53,9 +53,9 @@ impl Pricer for Priceable<'_> {
     ) -> PricerResult<f64> {
         match &self {
             Priceable::BlackScholes(bs_option) => {
-                bs_option.value(valuation_time, risk_factors, scenario)
+                bs_option.value_black_scholes(valuation_time, risk_factors, scenario)
             }
-            _ => Ok(0.),
+            Priceable::MonteCarlo(ms_option) => ms_option.value_monte_carlo(valuation_time, risk_factors, MonteCarloParams{ steps: 1000, repetitions: 100 }),
         }
     }
 }
@@ -70,13 +70,13 @@ pub fn price_black_scholes(
 ) -> PyResult<f64> {
     let call = py_call.borrow();
     let discounting_factor = rfr_discount("US Treasury 3M".into(), apr);
-    let risk_factors = call.get_risk_factors(
+    let risk_factors = call.get_black_scholes_risk_factors(
         underlying_price,
         volatility,
         dividend_rate,
         discounting_factor,
     );
-    call.value(Utc::now(), risk_factors, vec![])
+    call.value_black_scholes(Utc::now(), risk_factors, vec![])
         .map_err(|e| e.into())
         .map(|r| {
             debug!("Valued call at {}", r);
