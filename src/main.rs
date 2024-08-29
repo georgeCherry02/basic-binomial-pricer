@@ -9,7 +9,7 @@ mod symbol;
 mod utils;
 
 mod black_scholes;
-mod monte_carlo;
+// mod monte_carlo;
 mod tree;
 
 use chrono::NaiveDate;
@@ -19,6 +19,7 @@ use result::PricerResult;
 
 #[derive(Parser)]
 pub struct Cli {
+    pub symbol: String,
     pub underlying_price: f64,
     pub option_type: cli::OptionType,
     pub strike_price: f64,

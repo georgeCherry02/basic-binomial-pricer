@@ -3,6 +3,7 @@ use crate::Cli;
 use crate::black_scholes::BlackScholes;
 use crate::option::{get_call, get_put};
 use crate::result::{PricerError, PricerResult};
+use crate::risk_factors::discount::rfr_discount;
 use crate::risk_factors::RiskFactors;
 
 use chrono::prelude::Utc;
@@ -57,8 +58,18 @@ fn construct_option(
     cost: f64,
 ) -> PricerResult<Box<dyn BlackScholes>> {
     match args.option_type {
-        OptionType::CALL => Ok(Box::new(get_call(args.strike_price, expiry, cost))),
-        OptionType::PUT => Ok(Box::new(get_put(args.strike_price, expiry, cost))),
+        OptionType::CALL => Ok(Box::new(get_call(
+            args.symbol.clone().into(),
+            args.strike_price,
+            expiry,
+            cost,
+        ))),
+        OptionType::PUT => Ok(Box::new(get_put(
+            args.symbol.clone().into(),
+            args.strike_price,
+            expiry,
+            cost,
+        ))),
     }
 }
 
@@ -66,7 +77,9 @@ fn parse_cli(args: Cli) -> PricerResult<ValidatedInterface> {
     let naive_date = args.expiry;
     let expiry = get_expiry_datetime(naive_date)?;
     let option = construct_option(&args, expiry, 0.0)?;
-    let risk_factors = RiskFactors::new(args.underlying_price, args.volatility, args.apr, 0., 0.);
+    let discount_rf = rfr_discount("US Treasure 3M".into(), args.apr);
+    let risk_factors =
+        option.get_risk_factors(args.underlying_price, args.volatility, 0., discount_rf);
     Ok(ValidatedInterface {
         option,
         risk_factors,
@@ -78,7 +91,7 @@ pub fn price(args: Cli) -> PricerResult<()> {
         .and_then(|interface| {
             interface
                 .option
-                .value_black_scholes(Utc::now(), interface.risk_factors, vec![])
+                .value(Utc::now(), interface.risk_factors, vec![])
         })
         .map(|price| {
             info!("Priced Black-Scholes at {}", price);

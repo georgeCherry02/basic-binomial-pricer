@@ -15,7 +15,7 @@ impl AbsoluteTimeShock {
 }
 
 impl FloatShock for AbsoluteTimeShock {
-    fn apply(&self, base: f64) -> f64 {
+    fn apply_float(&self, base: f64) -> f64 {
         const NUMBER_OF_SECONDS_IN_A_YEAR: f64 = 31536000.0;
         let shock_in_years = self.size.num_seconds() as f64 / NUMBER_OF_SECONDS_IN_A_YEAR;
         match self.direction {

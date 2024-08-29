@@ -10,6 +10,8 @@ pub use float_shock::FloatShock;
 pub use relative::RelativeShock;
 use size::{ShockSize, TimeShockSize};
 
+use crate::symbol::Symbol;
+
 use chrono::Duration;
 
 pub enum ShockDirection {
@@ -17,44 +19,62 @@ pub enum ShockDirection {
     Down,
 }
 
+pub trait ApplyShock<T> {
+    fn apply(&self, applicant: &mut T);
+}
+
 pub struct PriceShock {
-    risk_factor_id: String,
+    risk_factor_id: Symbol,
     size: ShockSize,
 }
 
+impl PriceShock {
+    pub fn risk_factor(&self) -> &Symbol {
+        &self.risk_factor_id
+    }
+}
+
 pub struct VolatilityShock {
-    risk_factor_id: String,
+    risk_factor_id: Symbol,
     size: ShockSize,
 }
 
 pub struct TimeShock {
-    risk_factor_id: String,
     size: TimeShockSize,
 }
 
 pub struct InterestRateShock {
-    risk_factor_id: String,
+    risk_factor_id: Symbol,
     size: ShockSize,
 }
 
 impl FloatShock for PriceShock {
-    fn apply(&self, base: f64) -> f64 {
-        self.size.apply(base)
+    fn apply_float(&self, base: f64) -> f64 {
+        self.size.apply_float(base)
     }
 }
 impl FloatShock for VolatilityShock {
-    fn apply(&self, base: f64) -> f64 {
-        self.size.apply(base)
+    fn apply_float(&self, base: f64) -> f64 {
+        self.size.apply_float(base)
     }
 }
 impl FloatShock for InterestRateShock {
-    fn apply(&self, base: f64) -> f64 {
-        self.size.apply(base)
+    fn apply_float(&self, base: f64) -> f64 {
+        self.size.apply_float(base)
     }
 }
 impl FloatShock for TimeShock {
-    fn apply(&self, base: f64) -> f64 {
-        self.size.apply(base)
+    fn apply_float(&self, base: f64) -> f64 {
+        self.size.apply_float(base)
+    }
+}
+
+impl<T> ApplyShock<f64> for T
+where
+    T: FloatShock,
+{
+    fn apply(&self, applicant: &mut f64) {
+        *applicant = self.apply_float(*applicant)
     }
 }
 
@@ -81,29 +101,26 @@ pub const fn relative_basis_point_shock(basis_points: u64, direction: ShockDirec
     ShockSize::RelativeShock(RelativeShock::basis_point(basis_points as f64, direction))
 }
 
-pub const fn price_shock(risk_factor_id: String, size: ShockSize) -> Shock {
+pub const fn price_shock(risk_factor_id: Symbol, size: ShockSize) -> Shock {
     Shock::PriceShock(PriceShock {
         risk_factor_id,
         size,
     })
 }
-pub const fn interest_rate_shock(risk_factor_id: String, size: ShockSize) -> Shock {
+pub const fn interest_rate_shock(risk_factor_id: Symbol, size: ShockSize) -> Shock {
     Shock::InterestRateShock(InterestRateShock {
         risk_factor_id,
         size,
     })
 }
-pub const fn time_shock(risk_factor_id: String, size: TimeShockSize) -> Shock {
-    Shock::TimeShock(TimeShock {
-        risk_factor_id,
-        size,
-    })
+pub const fn time_shock(size: TimeShockSize) -> Shock {
+    Shock::TimeShock(TimeShock { size })
 }
-pub const fn volatility_shock(risk_factor_id: String, size: ShockSize) -> Shock {
+pub const fn volatility_shock(risk_factor_id: Symbol, size: ShockSize) -> Shock {
     Shock::VolatilityShock(VolatilityShock {
         risk_factor_id,
         size,
     })
 }
 
-pub type Scenario<'a> = Vec<&'a Shock>;
+pub type Scenario = Vec<Shock>;

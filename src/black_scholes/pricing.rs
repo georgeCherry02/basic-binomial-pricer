@@ -1,75 +1,129 @@
 use super::common::{gaussian, get_d1_and_d2};
-use super::types::BlackScholesInputsOld;
+use super::types::{BlackScholesInputs, BlackScholesRiskFactors};
+
 use crate::option::{Call, FinancialOption, Put};
-use crate::result::PricerResult;
+use crate::result::{PricerError, PricerResult};
 use crate::risk_factors::RiskFactors;
-use crate::shock::{FloatShock, Scenario, Shock};
+use crate::shock::{ApplyShock, Scenario};
+use crate::symbol::Symbol;
+
+use crate::risk_factors::discount::DiscountFactor;
+use crate::risk_factors::dividend::{AnnualisedDividendRate, Dividend};
+use crate::risk_factors::price::{Price, PriceTick};
+use crate::risk_factors::volatility::{ImpliedVolatility, Volatility};
 
 use chrono::{DateTime, Utc};
 
 // PDF under `Continuous`
 use statrs::distribution::ContinuousCDF;
 
+fn insensitive_risk_factor_err(risk_factor: &Symbol, symbol: &Symbol) -> PricerError {
+    PricerError::new(
+        format!(
+            "Provided risk factor with symbol {}, when option is sensitive to symbol {}",
+            risk_factor, symbol
+        ),
+        1,
+    )
+}
+fn check_symbols(risk_factor: &Symbol, symbol: &Symbol) -> PricerResult<()> {
+    if risk_factor != symbol {
+        Err(insensitive_risk_factor_err(risk_factor, symbol))
+    } else {
+        Ok(())
+    }
+}
+
 pub trait BlackScholes: FinancialOption {
-    fn value_black_scholes(
+    fn is_sensitive_to_risk_factors(
+        &self,
+        risk_factors: &BlackScholesRiskFactors,
+    ) -> PricerResult<()> {
+        check_symbols(risk_factors.price_risk_factor(), self.symbol())?;
+        check_symbols(risk_factors.volatility_risk_factor(), self.symbol())?;
+        check_symbols(risk_factors.dividend_risk_factor(), self.symbol())?;
+        Ok(())
+    }
+    fn get_risk_factors(
+        &self,
+        price: f64,
+        volatility: f64,
+        dividend_rate: f64,
+        discount_factor: DiscountFactor,
+    ) -> RiskFactors {
+        RiskFactors {
+            price_sensitivities: vec![Price::PriceTick(PriceTick::new(
+                self.symbol().clone(),
+                price,
+            ))],
+            volatility_sensitivities: vec![Volatility::ImpliedVolatility(ImpliedVolatility::new(
+                self.symbol().clone(),
+                volatility,
+            ))],
+            discount_factors: vec![discount_factor],
+            dividend_sensitivities: vec![Dividend::AnnualisedRate(AnnualisedDividendRate::new(
+                self.symbol().clone(),
+                dividend_rate,
+            ))],
+        }
+    }
+    fn value_black_scholes_impl(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: BlackScholesRiskFactors,
+        shock_scenarios: Scenario,
+    ) -> PricerResult<f64>;
+    fn value(
         &self,
         valuation_time: DateTime<Utc>,
         risk_factors: RiskFactors,
         shock_scenarios: Scenario,
-    ) -> PricerResult<f64>;
-}
-
-fn apply_shock(input: &mut BlackScholesInputsOld, shock: &Shock) {
-    match shock {
-        Shock::InterestRateShock(shock) => input.risk_free_rate = shock.apply(input.risk_free_rate),
-        Shock::PriceShock(shock) => input.underlying_price = shock.apply(input.underlying_price),
-        Shock::TimeShock(shock) => input.delta_t = shock.apply(input.delta_t),
-        Shock::VolatilityShock(shock) => {
-            input.underlying_volatility = shock.apply(input.underlying_volatility)
-        }
-    };
-}
-
-fn apply_scenario(mut input: BlackScholesInputsOld, scenario: Scenario) -> BlackScholesInputsOld {
-    for shock in scenario {
-        apply_shock(&mut input, shock);
+    ) -> PricerResult<f64> {
+        risk_factors
+            .try_into()
+            .and_then(|risk_factors| {
+                self.is_sensitive_to_risk_factors(&risk_factors)?;
+                Ok(risk_factors)
+            })
+            .and_then(|risk_factors| {
+                self.value_black_scholes_impl(valuation_time, risk_factors, shock_scenarios)
+            })
     }
-    return input;
 }
 
 impl BlackScholes for Call {
-    fn value_black_scholes(
+    fn value_black_scholes_impl(
         &self,
         valuation_time: DateTime<Utc>,
-        risk_factors: RiskFactors,
+        risk_factors: BlackScholesRiskFactors,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
-        let shocked_inputs = apply_scenario(inputs, scenario);
-        let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
+        let mut inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        scenario.apply(&mut inputs);
+        let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian()
             .map(|gaussian| {
-                shocked_inputs.dividend_adjusted_price() * gaussian.cdf(d1)
-                    - self.strike() * shocked_inputs.risk_free_adjustment() * gaussian.cdf(d2)
+                inputs.dividend_adjusted_price() * gaussian.cdf(d1)
+                    - self.strike() * inputs.risk_free_adjustment() * gaussian.cdf(d2)
             })
             .map(|valuation| valuation - self.cost())
     }
 }
 
 impl BlackScholes for Put {
-    fn value_black_scholes(
+    fn value_black_scholes_impl(
         &self,
         valuation_time: DateTime<Utc>,
-        risk_factors: RiskFactors,
+        risk_factors: BlackScholesRiskFactors,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let inputs = BlackScholesInputsOld::gather(self, valuation_time, risk_factors);
-        let shocked_inputs = apply_scenario(inputs, scenario);
-        let (d1, d2) = get_d1_and_d2(self.strike(), &shocked_inputs);
+        let mut inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
+        scenario.apply(&mut inputs);
+        let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian()
             .map(|gaussian| {
-                self.strike() * shocked_inputs.risk_free_adjustment() * gaussian.cdf(-d2)
-                    - shocked_inputs.dividend_adjusted_price() * gaussian.cdf(-d1)
+                self.strike() * inputs.risk_free_adjustment() * gaussian.cdf(-d2)
+                    - inputs.dividend_adjusted_price() * gaussian.cdf(-d1)
             })
             .map(|valuation| valuation - self.cost())
     }

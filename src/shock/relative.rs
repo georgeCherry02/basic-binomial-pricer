@@ -38,7 +38,7 @@ impl RelativeShock {
 }
 
 impl FloatShock for RelativeShock {
-    fn apply(&self, base: f64) -> f64 {
+    fn apply_float(&self, base: f64) -> f64 {
         let scaling = match self.shock_type {
             RelativeShockType::BasisPoint => 0.0001,
             RelativeShockType::Decimal => 1.0,

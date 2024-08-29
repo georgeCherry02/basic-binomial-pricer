@@ -3,9 +3,11 @@ pub mod result;
 pub mod shock_grid;
 
 mod black_scholes;
-mod monte_carlo;
+// mod monte_carlo;
 
+mod finite_difference;
 mod greeks;
+
 mod risk_factors;
 mod shock;
 mod symbol;
@@ -13,16 +15,50 @@ mod utils;
 
 use pyo3::prelude::*;
 
-use chrono::prelude::Utc;
+use chrono::{DateTime, Utc};
 
-pub use black_scholes::BlackScholes;
-use monte_carlo::{generate_monte_carlo_paths, MonteCarloInputs, MonteCarloParams};
+pub use black_scholes::{BlackScholes, BlackScholesRiskFactors};
+// use monte_carlo::{generate_monte_carlo_paths, MonteCarlo, MonteCarloInputs, MonteCarloParams};
+
 use option::{Call, FinancialOption, Put};
-use risk_factors::RiskFactors;
+use risk_factors::{discount::rfr_discount, RiskFactors};
 use shock_grid::{generate_shock_grid, ShockGrid, ShockLimits};
+
+use result::PricerResult;
+use shock::Scenario;
 
 use log::debug;
 use utils::date::get_duration_in_years;
+
+pub enum Priceable<'a> {
+    BlackScholes(&'a dyn BlackScholes),
+    //    MonteCarlo(&'a dyn MonteCarlo),
+}
+
+pub trait Pricer {
+    fn value(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+        scenario: Scenario,
+    ) -> PricerResult<f64>;
+}
+
+impl Pricer for Priceable<'_> {
+    fn value(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+        scenario: Scenario,
+    ) -> PricerResult<f64> {
+        match &self {
+            Priceable::BlackScholes(bs_option) => {
+                bs_option.value(valuation_time, risk_factors, scenario)
+            }
+            _ => Ok(0.),
+        }
+    }
+}
 
 #[pyfunction]
 pub fn price_black_scholes(
@@ -33,8 +69,14 @@ pub fn price_black_scholes(
     dividend_rate: f64,
 ) -> PyResult<f64> {
     let call = py_call.borrow();
-    let risk_factors = RiskFactors::new(underlying_price, volatility, apr, dividend_rate, 0.);
-    call.value_black_scholes(Utc::now(), risk_factors, vec![])
+    let discounting_factor = rfr_discount("US Treasury 3M".into(), apr);
+    let risk_factors = call.get_risk_factors(
+        underlying_price,
+        volatility,
+        dividend_rate,
+        discounting_factor,
+    );
+    call.value(Utc::now(), risk_factors, vec![])
         .map_err(|e| e.into())
         .map(|r| {
             debug!("Valued call at {}", r);
@@ -42,6 +84,7 @@ pub fn price_black_scholes(
         })
 }
 
+/*
 #[pyfunction]
 pub fn gen_monte_carlo_paths(
     py_call: Bound<Call>,
@@ -63,6 +106,7 @@ pub fn gen_monte_carlo_paths(
     };
     generate_monte_carlo_paths(&inputs, &params).map_err(|e| e.into())
 }
+*/
 
 #[pymodule]
 fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -76,6 +120,6 @@ fn pricer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ShockLimits>()?;
     m.add_function(wrap_pyfunction!(generate_shock_grid, m)?)?;
 
-    m.add_function(wrap_pyfunction!(gen_monte_carlo_paths, m)?)?;
+    // m.add_function(wrap_pyfunction!(gen_monte_carlo_paths, m)?)?;
     Ok(())
 }
