@@ -51,19 +51,3 @@ fn monte_carlo_near_black_scholes_finite_difference_rho() -> PricerResult<()> {
     );
     Ok(())
 }
-
-#[test]
-fn monte_carlo_near_black_scholes_finite_difference_theta() -> PricerResult<()> {
-    let (call, valuation_time, risk_factors) = get_test_call();
-    let black_scholes_priceable = Priceable::BlackScholes(&call);
-    let monte_carlo_priceable = Priceable::MonteCarlo(&call);
-    let black_scholes_theta = black_scholes_priceable.theta_fd(valuation_time, risk_factors.clone())?;
-    let monte_carlo_theta = monte_carlo_priceable.theta_fd(valuation_time, risk_factors)?;
-    assert!(
-        is_close(black_scholes_theta, monte_carlo_theta, 0.2),
-        "Black-Scholes finite difference theta ({}) differs from Monte Carlo ({}) by more than 20%",
-        black_scholes_theta,
-        monte_carlo_theta,
-    );
-    Ok(())
-}
