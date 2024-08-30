@@ -12,6 +12,7 @@ use crate::shock::{ApplyShock, Scenario};
 
 use chrono::{DateTime, Utc};
 use rand::Rng;
+use rayon::prelude::*;
 use statrs::distribution::Normal;
 use statrs::StatsError;
 
@@ -91,9 +92,10 @@ pub fn generate_monte_carlo_paths(
     let sidt = inputs.volatility() * dt.sqrt();
 
     let gaussian = gaussian()?;
-    let mut rng = rand::thread_rng();
     Ok((0..parameters.repetitions)
+        .into_par_iter()
         .map(|_| {
+            let mut rng = rand::thread_rng();
             (0..parameters.steps)
                 .map(|_| rng.sample(gaussian))
                 .map(|sample| (nudt + sidt * sample).exp())
