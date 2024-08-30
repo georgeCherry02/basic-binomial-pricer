@@ -4,11 +4,12 @@ mod float_shock;
 mod relative;
 mod size;
 
+use float_shock::FloatShock;
+use size::{ShockSize, TimeShockSize};
+
 pub use absolute::AbsoluteShock;
 pub use absolute_time::AbsoluteTimeShock;
-pub use float_shock::FloatShock;
 pub use relative::RelativeShock;
-use size::{ShockSize, TimeShockSize};
 
 use crate::symbol::Symbol;
 
