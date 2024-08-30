@@ -1,9 +1,9 @@
-use crate::option::FinancialOption;
 use crate::result::{PricerError, PricerResult};
 use crate::risk_factors::discount::{DiscountFactor, DiscountRf};
 use crate::risk_factors::price::{Price, PriceRf};
 use crate::risk_factors::volatility::{Volatility, VolatilityRf};
 use crate::risk_factors::RiskFactors;
+use crate::shock::{ApplyShock, Scenario, Shock};
 use crate::utils::date::get_duration_in_years;
 
 use chrono::{DateTime, Utc};
@@ -77,4 +77,27 @@ impl TryFrom<RiskFactors> for MonteCarloRiskFactors {
 pub struct MonteCarloParams {
     pub steps: u64,
     pub repetitions: u64,
+}
+
+impl ApplyShock<MonteCarloInputs> for Shock {
+    fn apply(&self, applicant: &mut MonteCarloInputs) {
+        match self {
+            Shock::InterestRateShock(shock) => {
+                shock.apply(&mut applicant.risk_factors.discount_factor)
+            }
+            Shock::PriceShock(shock) => shock.apply(&mut applicant.risk_factors.price_risk_factor),
+            Shock::TimeShock(shock) => shock.apply(&mut applicant.delta_t),
+            Shock::VolatilityShock(shock) => {
+                shock.apply(&mut applicant.risk_factors.volatility_risk_factor)
+            }
+        }
+    }
+}
+
+impl ApplyShock<MonteCarloInputs> for Scenario {
+    fn apply(&self, applicant: &mut MonteCarloInputs) {
+        for shock in self {
+            shock.apply(applicant);
+        }
+    }
 }

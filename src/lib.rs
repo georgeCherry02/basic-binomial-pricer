@@ -19,7 +19,7 @@ use pyo3::prelude::*;
 use chrono::{DateTime, Utc};
 
 pub use black_scholes::{BlackScholes, BlackScholesRiskFactors};
-use monte_carlo::{generate_monte_carlo_paths, MonteCarlo, MonteCarloInputs, MonteCarloParams};
+use monte_carlo::{MonteCarlo, MonteCarloParams};
 
 use option::{Call, Put};
 use risk_factors::{discount::rfr_discount, RiskFactors};
@@ -58,6 +58,7 @@ impl Pricer for Priceable<'_> {
             Priceable::MonteCarlo(ms_option) => ms_option.value_monte_carlo(
                 valuation_time,
                 risk_factors,
+                scenario,
                 MonteCarloParams {
                     steps: 1000,
                     repetitions: 100,

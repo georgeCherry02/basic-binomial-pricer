@@ -121,7 +121,7 @@ impl ApplyShock<BlackScholesInputs> for Shock {
 impl ApplyShock<BlackScholesInputs> for Scenario {
     fn apply(&self, applicant: &mut BlackScholesInputs) {
         for shock in self {
-            shock.apply(applicant)
+            shock.apply(applicant);
         }
     }
 }

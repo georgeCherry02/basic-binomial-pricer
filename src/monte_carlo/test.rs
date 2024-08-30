@@ -17,7 +17,7 @@ fn half_year_call_monte_carlo_near_black_scholes() -> PricerResult<()> {
     let black_scholes_valuation =
         call.value_black_scholes(valuation_time, risk_factors.clone(), vec![])?;
     let monte_carlo_valuation =
-        call.value_monte_carlo(valuation_time, risk_factors, monte_carlo_params())?;
+        call.value_monte_carlo(valuation_time, risk_factors, vec![], monte_carlo_params())?;
     assert!(
         is_close(black_scholes_valuation, monte_carlo_valuation, 0.15),
         "Monte Carlo valuation ({}) differs from Black-Scholes ({}) by more than 15%",
@@ -33,7 +33,7 @@ fn half_year_put_monte_carlo_near_black_scholes() -> PricerResult<()> {
     let black_scholes_valuation =
         put.value_black_scholes(valuation_time, risk_factors.clone(), vec![])?;
     let monte_carlo_valuation =
-        put.value_monte_carlo(valuation_time, risk_factors, monte_carlo_params())?;
+        put.value_monte_carlo(valuation_time, risk_factors, vec![], monte_carlo_params())?;
     assert!(
         is_close(black_scholes_valuation, monte_carlo_valuation, 0.15),
         "Monte Carlo valuation ({}) differs from Black-Scholes ({}) by more than 15%",

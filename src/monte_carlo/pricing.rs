@@ -8,6 +8,8 @@ use crate::risk_factors::price::{Price, PriceTick};
 use crate::risk_factors::volatility::{ImpliedVolatility, Volatility};
 use crate::risk_factors::RiskFactors;
 
+use crate::shock::{ApplyShock, Scenario};
+
 use chrono::{DateTime, Utc};
 use rand::Rng;
 use statrs::distribution::Normal;
@@ -45,10 +47,12 @@ pub trait MonteCarlo: FinancialOption {
         &self,
         valuation_time: DateTime<Utc>,
         risk_factors: RiskFactors,
+        shock_scenarios: Scenario,
         parameters: MonteCarloParams,
     ) -> PricerResult<f64> {
         risk_factors.try_into().and_then(|risk_factors| {
-            let inputs = MonteCarloInputs::gather(self.expiry(), valuation_time, risk_factors);
+            let mut inputs = MonteCarloInputs::gather(self.expiry(), valuation_time, risk_factors);
+            shock_scenarios.apply(&mut inputs);
             self.value_monte_carlo_impl(inputs, parameters)
         })
     }
