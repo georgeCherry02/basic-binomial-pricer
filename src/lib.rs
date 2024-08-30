@@ -6,7 +6,6 @@ mod black_scholes;
 mod monte_carlo;
 mod tree;
 
-mod finite_difference;
 mod greeks;
 
 mod risk_factors;

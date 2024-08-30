@@ -1,27 +1,11 @@
+mod finite_difference;
+
+pub use finite_difference::FiniteDifferenceGreeks;
+
 use crate::result::PricerResult;
 use crate::risk_factors::RiskFactors;
 
 use chrono::{DateTime, Utc};
-
-pub trait FiniteDifferenceGreeks {
-    fn delta_fd(
-        &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: RiskFactors,
-    ) -> PricerResult<f64>;
-    fn rho_fd(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors)
-        -> PricerResult<f64>;
-    fn theta_fd(
-        &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: RiskFactors,
-    ) -> PricerResult<f64>;
-    fn vega_fd(
-        &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: RiskFactors,
-    ) -> PricerResult<f64>;
-}
 
 pub trait AnalyticalGreeks {
     fn delta(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors) -> PricerResult<f64>;

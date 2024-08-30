@@ -1,14 +1,34 @@
+use crate::result::{PricerError, PricerResult};
 use crate::Pricer;
 
-use crate::greeks::FiniteDifferenceGreeks;
-use crate::result::{PricerError, PricerResult};
 use crate::risk_factors::discount::DiscountFactor;
 use crate::risk_factors::{IdentifiableRiskFactor, RiskFactors};
+
 use crate::shock::{absolute_shock, absolute_time_shock};
 use crate::shock::{interest_rate_shock, price_shock, time_shock, volatility_shock};
 use crate::shock::{Scenario, Shock, ShockDirection};
 
 use chrono::{DateTime, Duration, Utc};
+
+pub trait FiniteDifferenceGreeks {
+    fn delta_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64>;
+    fn rho_fd(&self, valuation_time: DateTime<Utc>, risk_factors: RiskFactors)
+        -> PricerResult<f64>;
+    fn theta_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64>;
+    fn vega_fd(
+        &self,
+        valuation_time: DateTime<Utc>,
+        risk_factors: RiskFactors,
+    ) -> PricerResult<f64>;
+}
 
 fn bump_and_reprice<T: Pricer>(
     option: &T,
