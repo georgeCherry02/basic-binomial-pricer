@@ -1,4 +1,6 @@
 mod finite_difference;
+#[cfg(test)]
+mod test;
 
 pub use finite_difference::FiniteDifferenceGreeks;
 

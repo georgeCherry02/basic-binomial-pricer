@@ -59,8 +59,8 @@ impl Pricer for Priceable<'_> {
                 risk_factors,
                 scenario,
                 MonteCarloParams {
-                    steps: 1000,
-                    repetitions: 100,
+                    steps: 10000,
+                    repetitions: 1000,
                 },
             ),
         }
