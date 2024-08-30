@@ -14,7 +14,6 @@ use crate::risk_factors::volatility::{ImpliedVolatility, Volatility};
 
 use chrono::{DateTime, Utc};
 
-// PDF under `Continuous`
 use statrs::distribution::ContinuousCDF;
 
 fn insensitive_risk_factor_err(risk_factor: &Symbol, symbol: &Symbol) -> PricerError {
@@ -67,37 +66,34 @@ pub trait BlackScholes: FinancialOption {
             ))],
         }
     }
-    fn value_black_scholes_impl(
-        &self,
-        inputs: BlackScholesInputs,
-        shock_scenarios: Scenario,
-    ) -> PricerResult<f64>;
+    fn value_black_scholes_impl(&self, inputs: BlackScholesInputs) -> PricerResult<f64>;
     fn value_black_scholes(
         &self,
         valuation_time: DateTime<Utc>,
         risk_factors: RiskFactors,
         shock_scenarios: Scenario,
     ) -> PricerResult<f64> {
+        let check_sensitivity_to_risk_factors = |risk_factors| {
+            self.is_sensitive_to_risk_factors(&risk_factors)?;
+            Ok(risk_factors)
+        };
+        let gather_model_inputs =
+            |risk_factors| BlackScholesInputs::gather(self.expiry(), valuation_time, risk_factors);
+        let shock_inputs = |mut inputs| {
+            shock_scenarios.apply(&mut inputs);
+            inputs
+        };
         risk_factors
             .try_into()
-            .and_then(|risk_factors| {
-                self.is_sensitive_to_risk_factors(&risk_factors)?;
-                Ok(risk_factors)
-            })
-            .map(|risk_factors| {
-                BlackScholesInputs::gather(self.expiry(), valuation_time, risk_factors)
-            })
-            .and_then(|inputs| self.value_black_scholes_impl(inputs, shock_scenarios))
+            .and_then(check_sensitivity_to_risk_factors)
+            .map(gather_model_inputs)
+            .map(shock_inputs)
+            .and_then(|input| self.value_black_scholes_impl(input))
     }
 }
 
 impl BlackScholes for Call {
-    fn value_black_scholes_impl(
-        &self,
-        mut inputs: BlackScholesInputs,
-        scenario: Scenario,
-    ) -> PricerResult<f64> {
-        scenario.apply(&mut inputs);
+    fn value_black_scholes_impl(&self, inputs: BlackScholesInputs) -> PricerResult<f64> {
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian()
             .map(|gaussian| {
@@ -109,12 +105,7 @@ impl BlackScholes for Call {
 }
 
 impl BlackScholes for Put {
-    fn value_black_scholes_impl(
-        &self,
-        mut inputs: BlackScholesInputs,
-        scenario: Scenario,
-    ) -> PricerResult<f64> {
-        scenario.apply(&mut inputs);
+    fn value_black_scholes_impl(&self, inputs: BlackScholesInputs) -> PricerResult<f64> {
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian()
             .map(|gaussian| {
