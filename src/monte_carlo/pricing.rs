@@ -1,4 +1,4 @@
-use super::types::{MonteCarloInputs, MonteCarloParams};
+use super::{MonteCarloInputs, MonteCarloParams};
 
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::{PricerError, PricerResult};

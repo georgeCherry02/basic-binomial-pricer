@@ -1,8 +1,13 @@
+mod inputs;
+mod params;
 mod pricing;
-mod types;
+mod risk_factors;
 
 #[cfg(test)]
 mod test;
 
+use risk_factors::MonteCarloRiskFactors;
+use inputs::MonteCarloInputs;
+
 pub use pricing::MonteCarlo;
-pub use types::MonteCarloParams;
+pub use params::MonteCarloParams;
