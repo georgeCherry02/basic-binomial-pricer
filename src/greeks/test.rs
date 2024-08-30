@@ -1,14 +1,15 @@
 use crate::greeks::FiniteDifferenceGreeks;
-use crate::Priceable;
 use crate::result::PricerResult;
 use crate::utils::test_utils::{get_test_call, is_close};
+use crate::Priceable;
 
 #[test]
 fn monte_carlo_near_black_scholes_finite_difference_delta() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_call();
     let black_scholes_priceable = Priceable::BlackScholes(&call);
     let monte_carlo_priceable = Priceable::MonteCarlo(&call);
-    let black_scholes_delta = black_scholes_priceable.delta_fd(valuation_time, risk_factors.clone())?;
+    let black_scholes_delta =
+        black_scholes_priceable.delta_fd(valuation_time, risk_factors.clone())?;
     let monte_carlo_delta = monte_carlo_priceable.delta_fd(valuation_time, risk_factors)?;
     assert!(
         is_close(black_scholes_delta, monte_carlo_delta, 0.2),
@@ -24,7 +25,8 @@ fn monte_carlo_near_black_scholes_finite_difference_vega() -> PricerResult<()> {
     let (call, valuation_time, risk_factors) = get_test_call();
     let black_scholes_priceable = Priceable::BlackScholes(&call);
     let monte_carlo_priceable = Priceable::MonteCarlo(&call);
-    let black_scholes_vega = black_scholes_priceable.vega_fd(valuation_time, risk_factors.clone())?;
+    let black_scholes_vega =
+        black_scholes_priceable.vega_fd(valuation_time, risk_factors.clone())?;
     let monte_carlo_vega = monte_carlo_priceable.vega_fd(valuation_time, risk_factors)?;
     assert!(
         is_close(black_scholes_vega, monte_carlo_vega, 0.2),
@@ -34,7 +36,6 @@ fn monte_carlo_near_black_scholes_finite_difference_vega() -> PricerResult<()> {
     );
     Ok(())
 }
-
 
 #[test]
 fn monte_carlo_near_black_scholes_finite_difference_rho() -> PricerResult<()> {
