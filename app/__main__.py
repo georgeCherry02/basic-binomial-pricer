@@ -63,7 +63,8 @@ def get_predefined_shock_grid():
     Input("expiry", "date"),
 )
 def update_off_strike(strike, cost, expiry):
-    call = Call(strike, get_dt(expiry), cost)
+    symbol = "Test"
+    call = Call(symbol, strike, get_dt(expiry), cost)
     shock_grid = get_predefined_shock_grid()
     risk_free_rate = 0.04
     valuations = shock_grid.value_black_scholes(call, risk_free_rate)

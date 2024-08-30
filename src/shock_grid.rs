@@ -1,6 +1,6 @@
+use crate::black_scholes::BlackScholes;
 use crate::option::Call;
-use crate::risk_factors::RiskFactors;
-use crate::BlackScholes;
+use crate::risk_factors::discount::rfr_discount;
 
 use pyo3::prelude::*;
 
@@ -37,13 +37,13 @@ impl ShockGrid {
     fn value_black_scholes(&self, py_call: Bound<Call>, risk_free_rate: f64) -> Vec<Vec<f64>> {
         let call: &Call = py_call.get();
         let now = Utc::now();
+        let discounting_factor = rfr_discount("US Treasury 3M".into(), risk_free_rate);
         let valuations = self.shocks.iter().map(|shock_point| {
-            let risk_factors = RiskFactors::new(
+            let risk_factors = call.get_black_scholes_risk_factors(
                 shock_point.price,
                 shock_point.volatility,
-                risk_free_rate,
                 0.,
-                0.,
+                discounting_factor.clone(),
             );
             call.value_black_scholes(now, risk_factors, vec![])
                 .unwrap_or_default()

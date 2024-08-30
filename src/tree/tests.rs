@@ -1,6 +1,8 @@
 #[cfg(test)]
 use crate::option::{get_call, get_put};
 #[cfg(test)]
+use crate::symbol::Symbol;
+#[cfg(test)]
 use crate::tree::{build::construct_tree, Tree};
 
 #[cfg(test)]
@@ -12,6 +14,7 @@ use chrono::TimeZone;
 
 #[test]
 fn two_year_basic_put() {
+    let mock_symbol = Symbol::from("AAPL");
     let underlying_price: f64 = 20.0;
     let strike = 20.0;
     let volatility = 0.2;
@@ -20,7 +23,7 @@ fn two_year_basic_put() {
     let end_date = begin_date
         .with_year(begin_date.year() + number_of_years)
         .unwrap();
-    let put = get_put(strike, end_date, 0.0);
+    let put = get_put(mock_symbol, strike, end_date, 0.0);
     let num_steps = number_of_years;
     let risk_free_rate = 0.05;
     #[allow(unused_must_use)]
@@ -42,6 +45,7 @@ fn two_year_basic_put() {
 
 #[test]
 fn two_year_basic_call() {
+    let mock_symbol = Symbol::from("AAPL");
     let underlying_price: f64 = 20.0;
     let strike = 20.0;
     let volatility = 0.2;
@@ -50,7 +54,7 @@ fn two_year_basic_call() {
     let end_date = begin_date
         .with_year(begin_date.year() + number_of_years)
         .unwrap();
-    let call = get_call(strike, end_date, 0.0);
+    let call = get_call(mock_symbol, strike, end_date, 0.0);
     let num_steps = number_of_years;
     let risk_free_rate = 0.05;
     #[allow(unused_must_use)]

@@ -1,8 +1,13 @@
+mod inputs;
+mod params;
 mod pricing;
-mod types;
+mod risk_factors;
 
 #[cfg(test)]
 mod test;
 
-pub use pricing::{generate_monte_carlo_paths, MonteCarlo};
-pub use types::{MonteCarloInputs, MonteCarloParams};
+use risk_factors::MonteCarloRiskFactors;
+use inputs::MonteCarloInputs;
+
+pub use pricing::MonteCarlo;
+pub use params::MonteCarloParams;

@@ -13,7 +13,7 @@ impl AbsoluteShock {
 }
 
 impl FloatShock for AbsoluteShock {
-    fn apply(&self, base: f64) -> f64 {
+    fn apply_float(&self, base: f64) -> f64 {
         match self.direction {
             ShockDirection::Up => base + self.size,
             ShockDirection::Down => base - self.size,

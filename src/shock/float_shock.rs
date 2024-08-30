@@ -1,3 +1,3 @@
 pub trait FloatShock {
-    fn apply(&self, base: f64) -> f64;
+    fn apply_float(&self, base: f64) -> f64;
 }

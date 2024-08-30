@@ -1,4 +1,4 @@
-use super::types::BlackScholesInputs;
+use super::BlackScholesInputs;
 
 use crate::result::{PricerError, PricerResult};
 
@@ -6,10 +6,10 @@ use statrs::distribution::Normal;
 use statrs::StatsError;
 
 pub fn get_d1_and_d2(strike: f64, inputs: &BlackScholesInputs) -> (f64, f64) {
-    let ln_val_over_strike = (inputs.underlying_price / strike).ln();
-    let rfr_minus_dividends_plus_vol_squared_over_two = inputs.risk_free_rate
-        - inputs.annualised_dividend_rate
-        + (inputs.underlying_volatility.powi(2) / 2f64);
+    let ln_val_over_strike = (inputs.price() / strike).ln();
+    let rfr_minus_dividends_plus_vol_squared_over_two = inputs.discount_rate()
+        - inputs.annualised_dividend_rate()
+        + (inputs.volatility().powi(2) / 2f64);
     let d1 = (ln_val_over_strike + rfr_minus_dividends_plus_vol_squared_over_two * inputs.delta_t)
         / inputs.volatility_for_delta_t();
     let d2 = d1 - inputs.volatility_for_delta_t();
