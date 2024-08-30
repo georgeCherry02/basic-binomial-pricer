@@ -1,4 +1,4 @@
-use super::types::BlackScholesInputs;
+use super::BlackScholesInputs;
 
 use crate::result::{PricerError, PricerResult};
 

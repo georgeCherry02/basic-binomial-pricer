@@ -1,5 +1,6 @@
 use super::common::{gaussian, get_d1_and_d2};
-use super::types::{BlackScholesInputs, BlackScholesRiskFactors};
+use super::BlackScholesInputs;
+use super::BlackScholesRiskFactors;
 
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::{PricerError, PricerResult};
