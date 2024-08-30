@@ -1,4 +1,4 @@
-use super::types::{MonteCarloInputs, MonteCarloParams, MonteCarloRiskFactors};
+use super::types::{MonteCarloInputs, MonteCarloParams};
 
 use crate::option::{Call, FinancialOption, Put};
 use crate::result::{PricerError, PricerResult};
@@ -7,7 +7,6 @@ use crate::risk_factors::discount::{DiscountFactor, HistoricReturn};
 use crate::risk_factors::price::{Price, PriceTick};
 use crate::risk_factors::volatility::{ImpliedVolatility, Volatility};
 use crate::risk_factors::RiskFactors;
-use crate::utils::date::get_duration_in_years;
 
 use chrono::{DateTime, Utc};
 use rand::Rng;

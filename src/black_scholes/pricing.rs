@@ -69,8 +69,7 @@ pub trait BlackScholes: FinancialOption {
     }
     fn value_black_scholes_impl(
         &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: BlackScholesRiskFactors,
+        inputs: BlackScholesInputs,
         shock_scenarios: Scenario,
     ) -> PricerResult<f64>;
     fn value_black_scholes(
@@ -85,20 +84,19 @@ pub trait BlackScholes: FinancialOption {
                 self.is_sensitive_to_risk_factors(&risk_factors)?;
                 Ok(risk_factors)
             })
-            .and_then(|risk_factors| {
-                self.value_black_scholes_impl(valuation_time, risk_factors, shock_scenarios)
+            .map(|risk_factors| {
+                BlackScholesInputs::gather(self.expiry(), valuation_time, risk_factors)
             })
+            .and_then(|inputs| self.value_black_scholes_impl(inputs, shock_scenarios))
     }
 }
 
 impl BlackScholes for Call {
     fn value_black_scholes_impl(
         &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: BlackScholesRiskFactors,
+        mut inputs: BlackScholesInputs,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let mut inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
         scenario.apply(&mut inputs);
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian()
@@ -113,11 +111,9 @@ impl BlackScholes for Call {
 impl BlackScholes for Put {
     fn value_black_scholes_impl(
         &self,
-        valuation_time: DateTime<Utc>,
-        risk_factors: BlackScholesRiskFactors,
+        mut inputs: BlackScholesInputs,
         scenario: Scenario,
     ) -> PricerResult<f64> {
-        let mut inputs = BlackScholesInputs::gather(self, valuation_time, risk_factors);
         scenario.apply(&mut inputs);
         let (d1, d2) = get_d1_and_d2(self.strike(), &inputs);
         gaussian()

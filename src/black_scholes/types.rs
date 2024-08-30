@@ -62,12 +62,12 @@ pub struct BlackScholesInputs {
 }
 
 impl BlackScholesInputs {
-    pub fn gather<T: FinancialOption>(
-        option: &T,
+    pub fn gather(
+        expiry: DateTime<Utc>,
         valuation_time: DateTime<Utc>,
         risk_factors: BlackScholesRiskFactors,
     ) -> BlackScholesInputs {
-        let delta_t = get_duration_in_years(valuation_time, option.expiry());
+        let delta_t = get_duration_in_years(valuation_time, expiry);
         BlackScholesInputs {
             delta_t,
             risk_factors,
