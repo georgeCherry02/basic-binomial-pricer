@@ -8,4 +8,3 @@ mod types;
 
 pub use analytical_greeks::BlackScholesGreeks;
 pub use pricing::BlackScholes;
-pub use types::BlackScholesRiskFactors;

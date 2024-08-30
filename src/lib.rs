@@ -17,7 +17,7 @@ use pyo3::prelude::*;
 
 use chrono::{DateTime, Utc};
 
-pub use black_scholes::{BlackScholes, BlackScholesRiskFactors};
+pub use black_scholes::BlackScholes;
 use monte_carlo::{MonteCarlo, MonteCarloParams};
 
 use option::{Call, Put};

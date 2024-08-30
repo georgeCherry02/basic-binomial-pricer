@@ -1,4 +1,3 @@
-use crate::option::FinancialOption;
 use crate::result::{PricerError, PricerResult};
 use crate::risk_factors::discount::{DiscountFactor, DiscountRf, InterestRate};
 use crate::risk_factors::dividend::{AnnualisedDividendRate, Dividend};

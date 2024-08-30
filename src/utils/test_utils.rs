@@ -1,5 +1,4 @@
 use crate::black_scholes::BlackScholes;
-use crate::monte_carlo::MonteCarlo;
 use crate::option::{get_call, get_put, Call, Put};
 use crate::risk_factors::discount::rfr_discount;
 use crate::risk_factors::RiskFactors;
