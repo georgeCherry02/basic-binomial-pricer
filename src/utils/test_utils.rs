@@ -4,7 +4,7 @@ use crate::risk_factors::discount::rfr_discount;
 use crate::risk_factors::RiskFactors;
 use crate::symbol::Symbol;
 
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{Duration, DateTime, TimeZone, Utc};
 use std::convert::From;
 
 fn get_test_evaluation_period() -> (DateTime<Utc>, DateTime<Utc>) {
@@ -14,9 +14,31 @@ fn get_test_evaluation_period() -> (DateTime<Utc>, DateTime<Utc>) {
     )
 }
 
+fn get_ls_test_evaluation_period() -> (DateTime<Utc>, DateTime<Utc>) {
+    let duration = Duration::days(180);
+    let begin_date = Utc.timestamp_millis_opt(1725032269942).unwrap();
+    let end_date = begin_date + duration;
+    (begin_date, end_date)
+}
+
 fn get_test_risk_factors<T: BlackScholes>(option: &T) -> RiskFactors {
     let underlying_price = 42.;
     let underlying_volatility = 0.2;
+    // Approximately 5%
+    let treasury_symbol = Symbol::from("US Treasury 3M");
+    let discount_rate = rfr_discount(treasury_symbol, 0.05);
+    let annualised_dividend_rate = 0.;
+    option.get_black_scholes_risk_factors(
+        underlying_price,
+        underlying_volatility,
+        annualised_dividend_rate,
+        discount_rate,
+    )
+}
+
+fn get_test_ls_risk_factors<T: BlackScholes>(option: &T) -> RiskFactors {
+    let underlying_price = 100.;
+    let underlying_volatility = 0.3;
     // Approximately 5%
     let treasury_symbol = Symbol::from("US Treasury 3M");
     let discount_rate = rfr_discount(treasury_symbol, 0.05);
@@ -44,8 +66,18 @@ pub fn get_test_put() -> (Put, DateTime<Utc>, RiskFactors) {
     let cost = 0f64;
     let strike = 40f64;
     let (begin_date, end_date) = get_test_evaluation_period();
-    let put = get_put(symbol.clone(), strike, end_date, cost);
+    let put = get_put(symbol, strike, end_date, cost);
     let risk_factors = get_test_risk_factors(&put);
+    (put, begin_date, risk_factors)
+}
+
+pub fn get_test_ls_put() -> (Put, DateTime<Utc>, RiskFactors) {
+    let symbol = Symbol::from("AAPL");
+    let cost = 0.;
+    let strike = 90.;
+    let (begin_date, end_date) = get_ls_test_evaluation_period();
+    let put = get_put(symbol, strike, end_date, cost);
+    let risk_factors = get_test_ls_risk_factors(&put);
     (put, begin_date, risk_factors)
 }
 
